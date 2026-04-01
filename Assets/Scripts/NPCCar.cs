@@ -41,6 +41,7 @@ public class NPCCar : MonoBehaviour
 
         instanceId = gameObject.GetInstanceID();
         if (isBoss) CreateBossAura();
+        FitColliderToSprite();
     }
 
     void CreateBossAura()
@@ -228,9 +229,8 @@ public class NPCCar : MonoBehaviour
 
     void RotateSprite(Vector2 moveDir)
     {
-        if (spriteChild == null) return;
         float angle = Mathf.Atan2(moveDir.y, moveDir.x) * Mathf.Rad2Deg - 90f;
-        spriteChild.rotation = Quaternion.Euler(0f, 0f, angle);
+        rb.MoveRotation(angle);
     }
 
     public void SetSprite(Sprite sprite)
@@ -238,6 +238,14 @@ public class NPCCar : MonoBehaviour
         if (spriteChild == null) return;
         var sr = spriteChild.GetComponent<SpriteRenderer>();
         if (sr != null) sr.sprite = sprite;
+        FitColliderToSprite();
+    }
+
+    void FitColliderToSprite()
+    {
+        var col = GetComponent<BoxCollider2D>();
+        if (col == null) return;
+        col.size = isBoss ? new Vector2(0.4f, 0.9f) : new Vector2(0.35f, 0.7f);
     }
 
     public void RandomizePosition()
@@ -291,7 +299,10 @@ public class NPCCar : MonoBehaviour
         return false;
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other) => CheckPlayerHit(other);
+    void OnTriggerStay2D(Collider2D other) => CheckPlayerHit(other);
+
+    void CheckPlayerHit(Collider2D other)
     {
         var playerCtrl = other.GetComponent<PlayerController>();
         if (playerCtrl == null) return;

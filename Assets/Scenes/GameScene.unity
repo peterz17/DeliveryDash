@@ -1674,7 +1674,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
+  m_fontSize: 18
   m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -10849,7 +10849,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &531583234
 Rigidbody2D:
@@ -11180,7 +11180,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e59f6c04a4e44a7c9a0b1efa899feb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  uiManager: {fileID: 530760140}
+  uiManager: {fileID: 1023462715}
   player: {fileID: 732012560}
   normalCarSprites:
   - {fileID: 21300000, guid: 3e05a120004e147af8b79e483966070a, type: 3}
@@ -11504,6 +11504,8 @@ GameObject:
   - component: {fileID: 584927883}
   - component: {fileID: 584927882}
   - component: {fileID: 584927881}
+  - component: {fileID: 584927885}
+  - component: {fileID: 584927886}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -11600,6 +11602,67 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &584927885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 584927880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
+--- !u!114 &584927886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 584927880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c28efb5d2d70b4c83b721e7d8bb16895, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebugColliderVisualizer
+  toggleKey: 107
+  colliderColor: {r: 0, g: 1, b: 0, a: 0.8}
+  triggerColor: {r: 1, g: 1, b: 0, a: 0.8}
+  playerColor: {r: 0, g: 0.5, b: 1, a: 1}
+  npcColor: {r: 1, g: 0.2, b: 0.2, a: 1}
 --- !u!1 &588685335
 GameObject:
   m_ObjectHideFlags: 0
@@ -14250,7 +14313,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &705080906
 Rigidbody2D:
@@ -14513,7 +14576,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.4, y: 0.9}
   m_EdgeRadius: 0
 --- !u!50 &718761903
 Rigidbody2D:
@@ -14974,7 +15037,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.4, y: 0.9}
   m_EdgeRadius: 0
 --- !u!50 &741145438
 Rigidbody2D:
@@ -15237,7 +15300,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &747269313
 Rigidbody2D:
@@ -17867,7 +17930,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
+  m_fontSize: 18
   m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -18225,7 +18288,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.4, y: 0.9}
   m_EdgeRadius: 0
 --- !u!50 &915863322
 Rigidbody2D:
@@ -19574,7 +19637,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &1005536804
 Rigidbody2D:
@@ -19916,7 +19979,7 @@ MonoBehaviour:
   sfxLabelText: {fileID: 0}
   fullscreenToggleButton: {fileID: 0}
   fullscreenLabelText: {fileID: 0}
-  modeBackToStartButton: {fileID: 0}
+  modeBackToStartButton: {fileID: 25744042}
   zoneLabelOpacitySlider: {fileID: 0}
   zoneLabelOpacityLabel: {fileID: 0}
   startTitleText: {fileID: 777222521}
@@ -20500,7 +20563,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26.05
+  m_fontSize: 18
   m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -24303,7 +24366,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26.2
+  m_fontSize: 18
   m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -25084,7 +25147,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26.2
+  m_fontSize: 18
   m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -35346,7 +35409,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &1449613412
 Rigidbody2D:
@@ -35472,7 +35535,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &1454498050
 Rigidbody2D:
@@ -38428,7 +38491,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &1641498057
 Rigidbody2D:
@@ -39295,7 +39358,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &1698919248
 Rigidbody2D:
@@ -44307,7 +44370,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &1937102860
 Rigidbody2D:
@@ -46274,7 +46337,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.4, y: 0.8}
+  m_Size: {x: 0.35, y: 0.7}
   m_EdgeRadius: 0
 --- !u!50 &2101247833
 Rigidbody2D:

@@ -137,10 +137,10 @@ public class PlayerController : MonoBehaviour
         Vector2 joyDir = (joystick != null) ? joystick.Direction : Vector2.zero;
         moveInput = Vector2.ClampMagnitude(new Vector2(x, y) + joyDir, 1f);
 
-        if (moveInput.sqrMagnitude > 0.01f && spriteChild != null)
+        if (moveInput.sqrMagnitude > 0.01f)
         {
             float angle = Mathf.Atan2(moveInput.y, moveInput.x) * Mathf.Rad2Deg - 90f;
-            spriteChild.rotation = Quaternion.Euler(0f, 0f, angle);
+            rb.MoveRotation(angle);
         }
     }
 

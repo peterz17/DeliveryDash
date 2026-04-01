@@ -272,6 +272,14 @@ public static class DeliveryGameSetup
             if (playerCtrl != null) follow.target = playerCtrl.transform;
             follow.smoothSpeed = 6f;
             follow.bounds = new Vector2(MapW * 0.5f - 4f, MapH * 0.5f - 3f);
+
+            camGO.AddComponent<DebugColliderVisualizer>();
+        }
+        else
+        {
+            var camGO = FindRoot("Main Camera");
+            if (camGO != null && camGO.GetComponent<DebugColliderVisualizer>() == null)
+                camGO.AddComponent<DebugColliderVisualizer>();
         }
 
         // ── UI ───────────────────────────────────────────────────────────────
@@ -795,7 +803,11 @@ public static class DeliveryGameSetup
                     rb.constraints = RigidbodyConstraints2D.FreezeRotation;
                 }
                 var col2 = npc.GetComponent<BoxCollider2D>();
-                if (col2 != null) col2.size = new Vector2(0.4f, 0.8f);
+                var npcCarComp = npc.GetComponent<NPCCar>();
+                if (col2 != null)
+                    col2.size = (npcCarComp != null && npcCarComp.isBoss)
+                        ? new Vector2(0.4f, 0.9f)
+                        : new Vector2(0.35f, 0.7f);
 
                 // Update speed, baseSpeed, range, and axis on the NPCCar component
                 var npcCar = npc.GetComponent<NPCCar>();
@@ -1618,7 +1630,7 @@ public static class DeliveryGameSetup
 
         var col = go.AddComponent<BoxCollider2D>();
         col.isTrigger = true;
-        col.size = new Vector2(0.4f, 0.8f);
+        col.size = new Vector2(0.35f, 0.7f);
 
         var sprGO = new GameObject("Sprite");
         sprGO.transform.SetParent(go.transform, false);
@@ -1649,7 +1661,7 @@ public static class DeliveryGameSetup
 
         var col = go.AddComponent<BoxCollider2D>();
         col.isTrigger = true;
-        col.size = new Vector2(0.4f, 0.8f);
+        col.size = new Vector2(0.4f, 0.9f);
 
         var sprGO = new GameObject("Sprite");
         sprGO.transform.SetParent(go.transform, false);
