@@ -7,8 +7,7 @@
       "Glob",
       "Grep",
       "Bash",
-      "Skill(update-config)",
-      "Bash(npx unity-mcp-cli*)"
+      "Skill(update-config)"
     ]
   },
   "enableAllProjectMcpServers": true,

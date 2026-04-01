@@ -376,22 +376,24 @@ public static class DeliveryGameSetup
                     if (uiManager.restartButton == null)          uiManager.restartButton          = RewireComp<Button>("PauseScreen/RestartButton");
                     if (uiManager.selectModeFromPauseButton == null) uiManager.selectModeFromPauseButton = RewireComp<Button>("PauseScreen/SelectModeButton");
                     if (uiManager.settingsButton == null)         uiManager.settingsButton         = RewireComp<Button>("PauseScreen/SettingsButton");
-                    if (uiManager.startSettingsButton == null)    uiManager.startSettingsButton    = RewireComp<Button>("StartScreen/SettingsButton");
+                    if (uiManager.startSettingsButton == null)    uiManager.startSettingsButton    = RewireComp<Button>("StartScreen/StartSettingsButton");
                     if (uiManager.closeSettingsButton == null)    uiManager.closeSettingsButton    = RewireComp<Button>("SettingsScreen/SettingsPanel/CloseSettingsButton");
                     if (uiManager.languageButton == null)         uiManager.languageButton         = RewireComp<Button>("SettingsScreen/SettingsPanel/LanguageButton");
                     if (uiManager.endlessRetryButton == null)     uiManager.endlessRetryButton     = RewireComp<Button>("EndlessSummaryScreen/EndlessRetryButton");
                     if (uiManager.endlessSelectModeButton == null) uiManager.endlessSelectModeButton = RewireComp<Button>("EndlessSummaryScreen/EndlessSelectModeButton");
                     if (uiManager.modeBackToStartButton == null)
                     {
-                        uiManager.modeBackToStartButton = RewireComp<Button>("ModeSelectScreen/BackToStartButton");
+                        uiManager.modeBackToStartButton = RewireComp<Button>("ModeSelectScreen/ModeContent/BackToStartButton");
+                        if (uiManager.modeBackToStartButton == null)
+                            uiManager.modeBackToStartButton = RewireComp<Button>("ModeSelectScreen/BackToStartButton");
                         if (uiManager.modeBackToStartButton == null)
                         {
-                            var modeSelT2 = canvasT2.Find("ModeSelectScreen");
-                            if (modeSelT2 != null)
+                            var contentT = canvasT2.Find("ModeSelectScreen/ModeContent");
+                            if (contentT != null)
                             {
-                                var backBtn2 = MakeButton(modeSelT2.gameObject, "BackToStartButton", "BACK",
-                                    new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.08f), Vector2.zero, Vector2.zero);
-                                ApplyButtonColor(backBtn2, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
+                                var backBtn2 = MakeButton(contentT.gameObject, "BackToStartButton", "BACK",
+                                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -390));
+                                ApplyButtonColor(backBtn2, Color.white, Color.white, Color.white);
                                 uiManager.modeBackToStartButton = backBtn2;
                             }
                         }
@@ -1389,9 +1391,9 @@ public static class DeliveryGameSetup
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, -309));
         endlessDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
-        // Back to Start button (outside ModeContent, pinned to bottom of ModeSelectScreen)
-        var modeBackBtn = MakeButton(modeSelectGO, "BackToStartButton", "BACK",
-            new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.08f), Vector2.zero, Vector2.zero);
+        // Back to Start button (inside ModeContent, same size as mode buttons)
+        var modeBackBtn = MakeButton(contentGO, "BackToStartButton", "BACK",
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -390));
         ApplyButtonColor(modeBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // ── Endless Summary Screen ────────────────────────────────────────────
@@ -1557,12 +1559,14 @@ public static class DeliveryGameSetup
 
     static void ApplyButtonColor(Button btn, Color normal, Color highlighted, Color pressed)
     {
-        btn.GetComponent<UnityEngine.UI.Image>().color = Color.white;
+        var img = btn.GetComponent<UnityEngine.UI.Image>();
+        if (img != null) img.color = Color.white;
+        btn.transition = Selectable.Transition.ColorTint;
         var colors = btn.colors;
-        colors.normalColor      = normal;
-        colors.highlightedColor = highlighted;
-        colors.pressedColor     = pressed;
-        colors.fadeDuration     = 0.12f;
+        colors.normalColor      = Color.white;
+        colors.highlightedColor = new Color(0.92f, 0.92f, 0.92f);
+        colors.pressedColor     = new Color(0.75f, 0.75f, 0.75f);
+        colors.fadeDuration     = 0.1f;
         btn.colors = colors;
     }
 
@@ -1841,12 +1845,7 @@ public static class DeliveryGameSetup
         img.color = Color.white;
 
         var btn = go.AddComponent<Button>();
-        var cb  = btn.colors;
-        cb.normalColor      = new Color(0.2f, 0.6f, 1f);
-        cb.highlightedColor = new Color(0.3f, 0.75f, 1f);
-        cb.pressedColor     = new Color(0.1f, 0.45f, 0.85f);
-        cb.fadeDuration     = 0.12f;
-        btn.colors = cb;
+        btn.targetGraphic = img;
 
         var rt = go.GetComponent<RectTransform>();
         rt.anchorMin        = anchorMin;
