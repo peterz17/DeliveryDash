@@ -205,6 +205,30 @@ public class GameManager : MonoBehaviour
         OnCarChanged?.Invoke();
     }
 
+    public void UnlockAllCars()
+    {
+        if (carCatalog == null) return;
+        foreach (var car in carCatalog)
+            if (car != null) PlayerPrefs.SetInt("CarUnlocked_" + car.carId, 1);
+        PlayerPrefs.Save();
+    }
+
+    public void ResetAllCars()
+    {
+        if (carCatalog == null) return;
+        foreach (var car in carCatalog)
+        {
+            if (car == null) continue;
+            if (car.unlockCost == 0 && car.requiredLevel == 0 && car.requiredEndlessTier10 == 0) continue;
+            PlayerPrefs.DeleteKey("CarUnlocked_" + car.carId);
+        }
+        PlayerPrefs.SetInt("Coins", 0);
+        PlayerPrefs.SetInt("EndlessTier10Count", 0);
+        if (carCatalog.Length > 0 && carCatalog[0] != null)
+            SelectCar(carCatalog[0]);
+        PlayerPrefs.Save();
+    }
+
     void LoadSelectedCar()
     {
         string savedId = PlayerPrefs.GetString("SelectedCar", "");

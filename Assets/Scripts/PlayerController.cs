@@ -165,7 +165,7 @@ public class PlayerController : MonoBehaviour
         if (col != null) col.size = car.colliderSize;
         if (spriteChild != null)
         {
-            spriteChild.localScale = Vector3.one * car.spriteScale;
+            spriteChild.localScale = Vector3.one * 2.7f;
             if (car.carSprite != null)
             {
                 var sr = spriteChild.GetComponent<SpriteRenderer>();

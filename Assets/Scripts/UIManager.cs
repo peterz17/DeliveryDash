@@ -237,6 +237,33 @@ public class UIManager : MonoBehaviour
         SetAllScreens(carSelect: true);
         PopulateCarItems();
         UpdateCoinDisplay(GameManager.Instance != null ? GameManager.Instance.Coins : 0);
+        WireCarSelectDebugButtons();
+    }
+
+    void WireCarSelectDebugButtons()
+    {
+        if (carSelectScreen == null) return;
+        var unlockBtn = carSelectScreen.transform.Find("UnlockAllButton")?.GetComponent<Button>();
+        var resetBtn = carSelectScreen.transform.Find("ResetAllButton")?.GetComponent<Button>();
+
+        if (unlockBtn != null)
+        {
+            unlockBtn.onClick.RemoveAllListeners();
+            unlockBtn.onClick.AddListener(() =>
+            {
+                GM(g => { g.UnlockAllCars(); PopulateCarItems(); UpdateCoinDisplay(g.Coins); });
+            });
+            AddClickSound(unlockBtn);
+        }
+        if (resetBtn != null)
+        {
+            resetBtn.onClick.RemoveAllListeners();
+            resetBtn.onClick.AddListener(() =>
+            {
+                GM(g => { g.ResetAllCars(); PopulateCarItems(); UpdateCoinDisplay(g.Coins); });
+            });
+            AddClickSound(resetBtn);
+        }
     }
 
     public void UpdateCoinDisplay(int coins)
