@@ -23,6 +23,11 @@ public class AudioManager : MonoBehaviour
     const float C5 = 523.25f, D5 = 587.33f, E5 = 659.25f, F5 = 698.46f;
     const float G5 = 783.99f, A5 = 880.00f, B5 = 987.77f, C6 = 1046.50f;
 
+    public static void Play(System.Action<AudioManager> action)
+    {
+        if (Instance != null) action(Instance);
+    }
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
@@ -59,27 +64,32 @@ public class AudioManager : MonoBehaviour
     }
 
     // ── SFX ─────────────────────────────────────────────────────────────────
-    float EffectiveVol(float baseVol) => baseVol * sfxVolume * masterVolume;
+    void PlaySFX(AudioClip clip, float baseVol)
+    {
+        if (sfxSrc != null && clip != null)
+            sfxSrc.PlayOneShot(clip, baseVol * sfxVolume * masterVolume);
+    }
 
-    public void PlayPickup()    { if (sfxSrc != null) sfxSrc.PlayOneShot(clipPickup,    EffectiveVol(0.8f)); }
-    public void PlayDelivered() { if (sfxSrc != null) sfxSrc.PlayOneShot(clipDelivered, EffectiveVol(0.9f)); }
-    public void PlayWrong()     { if (sfxSrc != null) sfxSrc.PlayOneShot(clipWrong,     EffectiveVol(0.7f)); }
-    public void PlayTimerWarn() { if (sfxSrc != null) sfxSrc.PlayOneShot(clipTimerWarn, EffectiveVol(0.6f)); }
-    public void PlayGameOver()  { if (sfxSrc != null) sfxSrc.PlayOneShot(clipGameOver,  EffectiveVol(0.8f)); }
-    public void PlayCrash()     { if (sfxSrc != null) sfxSrc.PlayOneShot(clipCrash,     EffectiveVol(1.0f)); }
+    public void PlayPickup()      => PlaySFX(clipPickup,    0.80f);
+    public void PlayDelivered()   => PlaySFX(clipDelivered, 0.90f);
+    public void PlayWrong()       => PlaySFX(clipWrong,     0.70f);
+    public void PlayTimerWarn()   => PlaySFX(clipTimerWarn, 0.60f);
+    public void PlayGameOver()    => PlaySFX(clipGameOver,  0.80f);
+    public void PlayCrash()       => PlaySFX(clipCrash,     1.00f);
+    public void PlayButtonClick() => PlaySFX(clipButtonClick, 0.55f);
+    public void PlayTierUp()      => PlaySFX(clipTierUp,      0.80f);
+    public void PlayBossArrive()  => PlaySFX(clipBossArrive,  0.85f);
 
-    public void PlayButtonClick()  { if (sfxSrc != null) sfxSrc.PlayOneShot(clipButtonClick,   EffectiveVol(0.55f)); }
-    public void PlayTierUp()       { if (sfxSrc != null) sfxSrc.PlayOneShot(clipTierUp,          EffectiveVol(0.80f)); }
-    public void PlayBossArrive()   { if (sfxSrc != null) sfxSrc.PlayOneShot(clipBossArrive,      EffectiveVol(0.85f)); }
     public void PlayPowerUpPickup(PowerUpType type)
     {
-        if (sfxSrc == null) return;
-        switch (type)
+        var clip = type switch
         {
-            case PowerUpType.Shield: sfxSrc.PlayOneShot(clipPowerUpShield, EffectiveVol(0.75f)); break;
-            case PowerUpType.Rocket: sfxSrc.PlayOneShot(clipPowerUpRocket, EffectiveVol(0.75f)); break;
-            case PowerUpType.Clock:  sfxSrc.PlayOneShot(clipPowerUpClock,  EffectiveVol(0.75f)); break;
-        }
+            PowerUpType.Shield => clipPowerUpShield,
+            PowerUpType.Rocket => clipPowerUpRocket,
+            PowerUpType.Clock  => clipPowerUpClock,
+            _                  => null
+        };
+        PlaySFX(clip, 0.75f);
     }
 
     public void SetMasterVolume(float v)
@@ -169,37 +179,8 @@ public class AudioManager : MonoBehaviour
             (C3,0.5f),(G3,0.5f),(E3,0.5f),(G3,0.5f),(C3,0.5f),(E3,0.5f),(G3,0.5f),(C4,0.5f),
         };
 
-        float totalBeats = 0f;
-        foreach (var n in mel) totalBeats += n.b;
-        int total = (int)(SR * BEAT * totalBeats);
-        float[] data = new float[total];
-
-        int pos = 0;
-        foreach (var (freq, beats) in mel)
-        {
-            int ns = (int)(SR * BEAT * beats);
-            AddPianoNote(data, pos, freq, BEAT * beats * 1.5f, SR, 0.18f, 3.5f);
-            pos += ns;
-        }
-
-        pos = 0;
-        foreach (var (freq, beats) in left)
-        {
-            int ns = (int)(SR * BEAT * beats);
-            AddPianoNote(data, pos, freq, BEAT * beats * 2f, SR, 0.10f, 5f);
-            pos += ns;
-        }
-
-        int tail = Mathf.Min(4096, total);
-        for (int i = 0; i < tail; i++) data[total - tail + i] *= 1f - (float)i / tail;
-
-        float peak = 0f;
-        foreach (float s in data) peak = Mathf.Max(peak, Mathf.Abs(s));
-        if (peak > 0.85f) { float sc = 0.85f / peak; for (int i = 0; i < data.Length; i++) data[i] *= sc; }
-
-        var clip = AudioClip.Create("bgm_piano", total, 1, SR, false);
-        clip.SetData(data, 0);
-        return clip;
+        float[] data = RenderTracks(mel, left, SR, BEAT, 0.18f, 3.5f, 1.5f, 0.10f, 5f, 2f);
+        return FinalizeBGM(data, data.Length, SR, "bgm_piano");
     }
 
     // ── Extreme BGM — fast dramatic piano, D minor ─────────────────────────
@@ -212,7 +193,6 @@ public class AudioManager : MonoBehaviour
         float Bb4x = 466.16f, Bb5x = 932.33f;
         float Dm5 = 587.33f, Dm4 = 293.66f;
 
-        // Right hand — urgent, dramatic
         (float hz, float b)[] mel =
         {
             (D5,0.25f),(F5,0.25f),(A5,0.25f),(D5,0.25f),(F5,0.5f),(E5,0.5f),(D5,1f),
@@ -225,7 +205,6 @@ public class AudioManager : MonoBehaviour
             (G5,0.5f),(F5,0.5f),(E5,0.5f),(D5,0.5f),(Dm4,1f),(0f,1f),
         };
 
-        // Left hand — pulsing octaves + arpeggios
         float D2 = 73.42f, A2 = 110f, Bb2x = 116.54f, G2 = 98f, F2 = 87.31f;
         float D3x = 146.83f, A3x = 220f, F3x = 174.61f, G3x = 196f;
         (float hz, float b)[] left =
@@ -240,27 +219,40 @@ public class AudioManager : MonoBehaviour
             (G2,0.25f),(Bb2x,0.25f),(A2,0.25f),(D3x,0.25f),(D2,0.5f),(D3x,0.5f),(D2,1f),
         };
 
+        float[] data = RenderTracks(mel, left, SR, BEAT, 0.22f, 5f, 1.2f, 0.13f, 6f, 1.8f);
+        return FinalizeBGM(data, data.Length, SR, "bgm_extreme_piano");
+    }
+
+    static float[] RenderTracks((float hz, float b)[] melody, (float hz, float b)[] bass,
+        int sr, float beat, float melVol, float melDecay, float melSustain,
+        float bassVol, float bassDecay, float bassSustain)
+    {
         float totalBeats = 0f;
-        foreach (var n in mel) totalBeats += n.b;
-        int total = (int)(SR * BEAT * totalBeats);
+        foreach (var n in melody) totalBeats += n.b;
+        int total = (int)(sr * beat * totalBeats);
         float[] data = new float[total];
 
         int pos = 0;
-        foreach (var (freq, beats) in mel)
+        foreach (var (freq, beats) in melody)
         {
-            int ns = (int)(SR * BEAT * beats);
-            AddPianoNote(data, pos, freq, BEAT * beats * 1.2f, SR, 0.22f, 5f);
+            int ns = (int)(sr * beat * beats);
+            AddPianoNote(data, pos, freq, beat * beats * melSustain, sr, melVol, melDecay);
             pos += ns;
         }
 
         pos = 0;
-        foreach (var (freq, beats) in left)
+        foreach (var (freq, beats) in bass)
         {
-            int ns = (int)(SR * BEAT * beats);
-            AddPianoNote(data, pos, freq, BEAT * beats * 1.8f, SR, 0.13f, 6f);
+            int ns = (int)(sr * beat * beats);
+            AddPianoNote(data, pos, freq, beat * beats * bassSustain, sr, bassVol, bassDecay);
             pos += ns;
         }
 
+        return data;
+    }
+
+    static AudioClip FinalizeBGM(float[] data, int total, int sr, string name)
+    {
         int tail = Mathf.Min(4096, total);
         for (int i = 0; i < tail; i++) data[total - tail + i] *= 1f - (float)i / tail;
 
@@ -268,7 +260,7 @@ public class AudioManager : MonoBehaviour
         foreach (float s in data) peak = Mathf.Max(peak, Mathf.Abs(s));
         if (peak > 0.85f) { float sc = 0.85f / peak; for (int i = 0; i < data.Length; i++) data[i] *= sc; }
 
-        var clip = AudioClip.Create("bgm_extreme_piano", total, 1, SR, false);
+        var clip = AudioClip.Create(name, total, 1, sr, false);
         clip.SetData(data, 0);
         return clip;
     }

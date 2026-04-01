@@ -10,7 +10,6 @@ public class NPCCar : MonoBehaviour
     public bool isBoss = false;
 
     static readonly Collider2D[] _overlapBuf = new Collider2D[16];
-    static Sprite _cachedAuraSprite;
 
     Rigidbody2D rb;
     Transform spriteChild;
@@ -51,30 +50,9 @@ public class NPCCar : MonoBehaviour
         go.transform.localScale = Vector3.one * 2.5f;
 
         bossAura = go.AddComponent<SpriteRenderer>();
-        bossAura.sprite = BuildAuraDisc();
+        bossAura.sprite = SpriteFactory.AuraDisc();
         bossAura.sortingOrder = 5; // below car sprite (order 6)
         bossAura.color = new Color(1f, 0.2f, 0.15f, 0.45f); // red tint
-    }
-
-    static Sprite BuildAuraDisc()
-    {
-        if (_cachedAuraSprite != null) return _cachedAuraSprite;
-        const int S = 32;
-        var px = new Color[S * S];
-        float cx = S * 0.5f, cy = S * 0.5f, r = S * 0.5f - 1f;
-        for (int y = 0; y < S; y++)
-            for (int x = 0; x < S; x++)
-            {
-                float dist = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
-                float alpha = 1f - Mathf.Clamp01((dist - (r - 4f)) / 4f);
-                if (dist <= r) px[y * S + x] = new Color(1f, 1f, 1f, alpha);
-            }
-        var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
-        tex.filterMode = FilterMode.Bilinear;
-        tex.SetPixels(px);
-        tex.Apply();
-        _cachedAuraSprite = Sprite.Create(tex, new Rect(0, 0, S, S), Vector2.one * 0.5f, 100f);
-        return _cachedAuraSprite;
     }
 
     void FixedUpdate()

@@ -12,12 +12,12 @@ public class PickupZone : MonoBehaviour
         if (!player.HasPackage)
         {
             player.PickupPackage();
-            GameManager.Instance.uiManager.ShowFeedback(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_pickup") : "Package picked up!", true);
-            if (AudioManager.Instance != null) AudioManager.Instance.PlayPickup();
+            GameManager.Instance.uiManager.ShowFeedback(LocalizationManager.L("feedback_pickup", "Package picked up!"), true);
+            AudioManager.Play(a => a.PlayPickup());
         }
         else
         {
-            GameManager.Instance.uiManager.ShowFeedback(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_carrying") : "Already carrying a package!", false);
+            GameManager.Instance.uiManager.ShowFeedback(LocalizationManager.L("feedback_carrying", "Already carrying a package!"), false);
         }
     }
 }

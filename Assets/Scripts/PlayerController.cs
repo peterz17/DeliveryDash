@@ -38,7 +38,7 @@ public class PlayerController : MonoBehaviour
         var auraGO = new GameObject("Aura");
         auraGO.transform.SetParent(transform, false);
         auraRenderer = auraGO.AddComponent<SpriteRenderer>();
-        auraRenderer.sprite = CreateAuraDisc();
+        auraRenderer.sprite = SpriteFactory.AuraDisc();
         auraRenderer.sortingOrder = 9;   // behind the car sprite (order 10)
         auraRenderer.color = Color.clear;
 
@@ -80,26 +80,6 @@ public class PlayerController : MonoBehaviour
         tex.SetPixels(px);
         tex.Apply();
         return Sprite.Create(tex, new Rect(0, 0, S, S), Vector2.one * 0.5f, 32f);
-    }
-
-    static Sprite CreateAuraDisc()
-    {
-        const int S = 32;
-        var pixels = new Color[S * S];
-        float cx = S * 0.5f, cy = S * 0.5f, outerR = S * 0.5f - 1f;
-        for (int y = 0; y < S; y++)
-            for (int x = 0; x < S; x++)
-            {
-                float dist = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
-                float alpha = 1f - Mathf.Clamp01((dist - (outerR - 4f)) / 4f);
-                if (dist <= outerR)
-                    pixels[y * S + x] = new Color(1f, 1f, 1f, alpha);
-            }
-        var tex = new Texture2D(S, S, TextureFormat.RGBA32, false);
-        tex.filterMode = FilterMode.Bilinear;
-        tex.SetPixels(pixels);
-        tex.Apply();
-        return Sprite.Create(tex, new Rect(0, 0, S, S), Vector2.one * 0.5f, 100f);
     }
 
     void Update()
@@ -236,26 +216,33 @@ public class PlayerController : MonoBehaviour
     public void PickupPowerUp(PowerUpType type)
     {
         ShakeCamera(0.08f, 0.06f);
-        if (AudioManager.Instance != null) AudioManager.Instance.PlayPowerUpPickup(type);
+        AudioManager.Play(a => a.PlayPowerUpPickup(type));
+
         switch (type)
         {
             case PowerUpType.Shield:
                 shieldTimer = ShieldDuration;
                 HasShield = true;
                 PowerUpManager.RaisePowerUpActivated("shield", ShieldDuration);
-                UIManager uim = GameManager.Instance != null ? GameManager.Instance.uiManager : null;
-                if (uim != null) uim.ShowFeedback(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_shield") : "Shield! 2s", true);
                 break;
             case PowerUpType.Rocket:
                 rocketTimer = RocketDuration;
                 PowerUpManager.RaisePowerUpActivated("rocket", RocketDuration);
-                if (GameManager.Instance != null) GameManager.Instance.uiManager.ShowFeedback(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_rocket") : "Rocket! 2s", true);
                 break;
             case PowerUpType.Clock:
                 if (PowerUpManager.Instance != null) PowerUpManager.Instance.StartClockEffect();
-                if (GameManager.Instance != null) GameManager.Instance.uiManager.ShowFeedback(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_clock") : "Time Freeze! 2s", true);
                 break;
         }
+
+        string feedbackKey = type switch
+        {
+            PowerUpType.Shield => "feedback_shield",
+            PowerUpType.Rocket => "feedback_rocket",
+            PowerUpType.Clock  => "feedback_clock",
+            _                  => null
+        };
+        if (feedbackKey != null && GameManager.Instance != null)
+            GameManager.Instance.uiManager.ShowFeedback(LocalizationManager.L(feedbackKey), true);
     }
 
     public void PickupPackage()

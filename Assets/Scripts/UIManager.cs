@@ -122,66 +122,48 @@ public class UIManager : MonoBehaviour
     void AddClickSound(Button btn)
     {
         if (btn != null)
-            btn.onClick.AddListener(() => { if (AudioManager.Instance != null) AudioManager.Instance.PlayButtonClick(); });
+            btn.onClick.AddListener(() => AudioManager.Play(a => a.PlayButtonClick()));
+    }
+
+    void Bind(Button btn, UnityEngine.Events.UnityAction action)
+    {
+        if (btn == null) return;
+        btn.onClick.RemoveAllListeners();
+        btn.onClick.AddListener(action);
+        AddClickSound(btn);
+    }
+
+    void GM(System.Action<GameManager> action)
+    {
+        if (GameManager.Instance != null) action(GameManager.Instance);
     }
 
     void Start()
     {
-        void Bind(Button btn, UnityEngine.Events.UnityAction action)
-        {
-            if (btn == null) return;
-            btn.onClick.RemoveAllListeners();
-            btn.onClick.AddListener(action);
-        }
-
-        Bind(startButton,              () => ShowModeSelectScreen());
-        Bind(retryButton,              () => { if (GameManager.Instance != null) GameManager.Instance.StartGame(); });
-        Bind(resumeButton,             () => { if (GameManager.Instance != null) GameManager.Instance.ResumeGame(); });
-        Bind(restartButton,            () => { if (GameManager.Instance != null) GameManager.Instance.StartGame(); });
-        Bind(nextLevelButton,          () => { if (GameManager.Instance != null) GameManager.Instance.OnNextLevelButton(); });
-        Bind(selectModeFromPauseButton,() => { if (GameManager.Instance != null) GameManager.Instance.ReturnToMainMenu(); });
-        Bind(playAgainButton,          () => ShowModeSelectScreen());
-
-        Bind(rushModeButton,           () => { if (GameManager.Instance != null) GameManager.Instance.StartWithMode(GameMode.Rush); });
-        Bind(normalModeButton,         () => { if (GameManager.Instance != null) GameManager.Instance.StartWithMode(GameMode.Normal); });
-        Bind(endlessModeButton,        () => { if (GameManager.Instance != null) GameManager.Instance.StartWithMode(GameMode.Endless); });
-        Bind(heartExtremeModeButton,   () => { if (GameManager.Instance != null) GameManager.Instance.StartWithMode(GameMode.HeartExtreme); });
-        Bind(rushExtremeModeButton,    () => { if (GameManager.Instance != null) GameManager.Instance.StartWithMode(GameMode.RushExtreme); });
-
-        Bind(endlessSelectModeButton,  () => ShowModeSelectScreen());
-        Bind(endlessRetryButton,       () => { if (GameManager.Instance != null) GameManager.Instance.StartWithMode(GameMode.Endless); });
-        Bind(modeBackToStartButton,    () => ShowStartScreen());
-
-        Bind(settingsButton,           () => ShowSettingsScreen());
-        Bind(startSettingsButton,      () => ShowSettingsScreen());
-        Bind(hudSettingsButton,        () => { if (GameManager.Instance != null) GameManager.Instance.PauseGame(); });
-        Bind(closeSettingsButton,      () => HideSettingsScreen());
-        Bind(languageButton,           () => { if (LocalizationManager.Instance != null) LocalizationManager.Instance.ToggleLanguage(); UpdateLanguageButtonText(); });
-
-        AddClickSound(startButton);
-        AddClickSound(retryButton);
-        AddClickSound(resumeButton);
-        AddClickSound(restartButton);
-        AddClickSound(nextLevelButton);
-        AddClickSound(selectModeFromPauseButton);
-        AddClickSound(playAgainButton);
-        AddClickSound(rushModeButton);
-        AddClickSound(normalModeButton);
-        AddClickSound(endlessModeButton);
-        AddClickSound(heartExtremeModeButton);
-        AddClickSound(rushExtremeModeButton);
-        AddClickSound(endlessSelectModeButton);
-        AddClickSound(endlessRetryButton);
-        AddClickSound(modeBackToStartButton);
-        AddClickSound(settingsButton);
-        AddClickSound(startSettingsButton);
-        AddClickSound(closeSettingsButton);
-        AddClickSound(languageButton);
+        Bind(startButton,               () => ShowModeSelectScreen());
+        Bind(retryButton,               () => GM(g => g.StartGame()));
+        Bind(resumeButton,              () => GM(g => g.ResumeGame()));
+        Bind(restartButton,             () => GM(g => g.StartGame()));
+        Bind(nextLevelButton,           () => GM(g => g.OnNextLevelButton()));
+        Bind(selectModeFromPauseButton, () => GM(g => g.ReturnToMainMenu()));
+        Bind(playAgainButton,           () => ShowModeSelectScreen());
+        Bind(rushModeButton,            () => GM(g => g.StartWithMode(GameMode.Rush)));
+        Bind(normalModeButton,          () => GM(g => g.StartWithMode(GameMode.Normal)));
+        Bind(endlessModeButton,         () => GM(g => g.StartWithMode(GameMode.Endless)));
+        Bind(heartExtremeModeButton,    () => GM(g => g.StartWithMode(GameMode.HeartExtreme)));
+        Bind(rushExtremeModeButton,     () => GM(g => g.StartWithMode(GameMode.RushExtreme)));
+        Bind(endlessSelectModeButton,   () => ShowModeSelectScreen());
+        Bind(endlessRetryButton,        () => GM(g => g.StartWithMode(GameMode.Endless)));
+        Bind(modeBackToStartButton,     () => ShowStartScreen());
+        Bind(settingsButton,            () => ShowSettingsScreen());
+        Bind(startSettingsButton,       () => ShowSettingsScreen());
+        Bind(hudSettingsButton,         () => GM(g => g.PauseGame()));
+        Bind(closeSettingsButton,       () => HideSettingsScreen());
+        Bind(languageButton,            () => { if (LocalizationManager.Instance != null) LocalizationManager.Instance.ToggleLanguage(); UpdateLanguageButtonText(); });
         if (volumeSlider != null)
         {
-            if (AudioManager.Instance != null)
-                volumeSlider.value = AudioManager.Instance.MasterVolume;
-            volumeSlider.onValueChanged.AddListener(v => { if (AudioManager.Instance != null) AudioManager.Instance.SetMasterVolume(v); });
+            if (AudioManager.Instance != null) volumeSlider.value = AudioManager.Instance.MasterVolume;
+            volumeSlider.onValueChanged.AddListener(v => AudioManager.Play(a => a.SetMasterVolume(v)));
         }
 
         // Auto-find LevelSelectScreen if reference is missing
@@ -205,12 +187,12 @@ public class UIManager : MonoBehaviour
         if (bgmVolumeSlider != null)
         {
             if (AudioManager.Instance != null) bgmVolumeSlider.value = AudioManager.Instance.BGMVolume;
-            bgmVolumeSlider.onValueChanged.AddListener(v => { if (AudioManager.Instance != null) AudioManager.Instance.SetBGMVolume(v); });
+            bgmVolumeSlider.onValueChanged.AddListener(v => AudioManager.Play(a => a.SetBGMVolume(v)));
         }
         if (sfxVolumeSlider != null)
         {
             if (AudioManager.Instance != null) sfxVolumeSlider.value = AudioManager.Instance.SFXVolume;
-            sfxVolumeSlider.onValueChanged.AddListener(v => { if (AudioManager.Instance != null) AudioManager.Instance.SetSFXVolume(v); });
+            sfxVolumeSlider.onValueChanged.AddListener(v => AudioManager.Play(a => a.SetSFXVolume(v)));
         }
         RefreshLocalization();
     }
@@ -261,33 +243,28 @@ public class UIManager : MonoBehaviour
     public void ShowLevelFail(int score, int needed, int level, int bestScore)
     {
         SetAllScreens(gameOver: true);
-        var lm = LocalizationManager.Instance;
-        if (failTitleText != null)   failTitleText.text   = string.Format(lm != null ? lm.Get("fail_title")  : "LEVEL {0} FAILED",  level);
-        if (finalScoreText != null)  finalScoreText.text  = string.Format(lm != null ? lm.Get("fail_score")  : "Score: {0}",         score);
-        if (neededScoreText != null) neededScoreText.text = string.Format(lm != null ? lm.Get("fail_needed") : "Need {0} to pass",   needed);
+        if (failTitleText != null)   failTitleText.text   = LocalizationManager.LFmt("fail_title",  "LEVEL {0} FAILED", level);
+        if (finalScoreText != null)  finalScoreText.text  = LocalizationManager.LFmt("fail_score",  "Score: {0}",        score);
+        if (neededScoreText != null) neededScoreText.text = LocalizationManager.LFmt("fail_needed", "Need {0} to pass",  needed);
         var bestTxt = FindOrCreateBestText(gameOverScreen, "BestScoreText");
         if (bestTxt != null)
-        {
-            string bestFmt = lm != null ? lm.Get("best_score") : "Best: {0}";
-            bestTxt.text = string.Format(bestFmt, bestScore);
-        }
+            bestTxt.text = LocalizationManager.LFmt("best_score", "Best: {0}", bestScore);
     }
 
     public void ShowLevelComplete(int score, int nextLevel, int bestScore = 0, bool showCountdown = false)
     {
         SetAllScreens(levelComplete: true);
-        var lm = LocalizationManager.Instance;
-        if (levelCompleteScoreText != null) levelCompleteScoreText.text = string.Format(lm != null ? lm.Get("lc_score") : "Score: {0}", score);
-        if (levelCompleteNextText != null)  levelCompleteNextText.text  = string.Format(lm != null ? lm.Get("lc_next")  : "Next: Level {0}", nextLevel);
+        if (levelCompleteScoreText != null) levelCompleteScoreText.text = LocalizationManager.LFmt("lc_score", "Score: {0}", score);
+        if (levelCompleteNextText != null)  levelCompleteNextText.text  = LocalizationManager.LFmt("lc_next",  "Next: Level {0}", nextLevel);
         if (levelCompleteCountdownText != null)
         {
             levelCompleteCountdownText.gameObject.SetActive(showCountdown);
-            if (showCountdown) levelCompleteCountdownText.text = string.Format(lm != null ? lm.Get("rush_countdown") : "Auto-advancing in {0}...", 5);
+            if (showCountdown) levelCompleteCountdownText.text = LocalizationManager.LFmt("rush_countdown", "Auto-advancing in {0}...", 5);
         }
         var bestTxt = FindOrCreateBestText(levelCompleteScreen, "BestScoreText");
         if (bestTxt != null && bestScore > 0)
         {
-            bestTxt.text = string.Format(lm != null ? lm.Get("best_score") : "Best: {0}", bestScore);
+            bestTxt.text = LocalizationManager.LFmt("best_score", "Best: {0}", bestScore);
             bestTxt.gameObject.SetActive(true);
         }
     }
@@ -295,15 +272,14 @@ public class UIManager : MonoBehaviour
     public void ShowVictory(int score, int bestScore)
     {
         SetAllScreens(victory: true);
-        var lm = LocalizationManager.Instance;
-        if (victoryScoreText != null) victoryScoreText.text = string.Format(lm != null ? lm.Get("vic_score") : "Final Score: {0}", score);
+        if (victoryScoreText != null) victoryScoreText.text = LocalizationManager.LFmt("vic_score", "Final Score: {0}", score);
         var bestTxt = FindOrCreateBestText(victoryScreen, "BestScoreText");
         if (bestTxt != null)
         {
             bool isNew = score >= bestScore;
             bestTxt.text = isNew
-                ? (lm != null ? lm.Get("new_record") : "NEW RECORD!")
-                : string.Format(lm != null ? lm.Get("best_score") : "Best: {0}", bestScore);
+                ? LocalizationManager.L("new_record", "NEW RECORD!")
+                : LocalizationManager.LFmt("best_score", "Best: {0}", bestScore);
             bestTxt.color = isNew ? new Color(1f, 0.85f, 0.1f) : new Color(0.8f, 0.8f, 0.3f);
         }
     }
@@ -311,45 +287,22 @@ public class UIManager : MonoBehaviour
     public void ShowEndlessSummary(int score, int tier, int deliveries, int bestScore = 0, int bestTier = 0)
     {
         SetAllScreens(endlessSummary: true);
-        var lm = LocalizationManager.Instance;
-        if (endlessScoreText != null)      endlessScoreText.text      = string.Format(lm != null ? lm.Get("endless_score")      : "Score: {0}",         score);
-        if (endlessTierText != null)       endlessTierText.text       = string.Format(lm != null ? lm.Get("endless_tiers")      : "Tiers Reached: {0}", tier);
-        if (endlessDeliveriesText != null) endlessDeliveriesText.text = string.Format(lm != null ? lm.Get("endless_deliveries") : "Deliveries: {0}",    deliveries);
+        if (endlessScoreText != null)      endlessScoreText.text      = LocalizationManager.LFmt("endless_score",      "Score: {0}",         score);
+        if (endlessTierText != null)       endlessTierText.text       = LocalizationManager.LFmt("endless_tiers",      "Tiers Reached: {0}", tier);
+        if (endlessDeliveriesText != null) endlessDeliveriesText.text = LocalizationManager.LFmt("endless_deliveries", "Deliveries: {0}",    deliveries);
 
         bool isNewScore = score >= bestScore && bestScore > 0;
         bool isNewTier  = tier >= bestTier && bestTier > 0;
+        Color goldColor   = new Color(1f, 0.85f, 0.1f);
+        Color normalColor = new Color(0.8f, 0.8f, 0.3f);
 
-        var bestScoreTxt = FindOrCreateBestText(endlessSummaryScreen, "BestScoreText");
-        if (bestScoreTxt != null)
-        {
-            var rt = (RectTransform)bestScoreTxt.transform;
-            rt.anchorMin = new Vector2(0.10f, 0.34f);
-            rt.anchorMax = new Vector2(0.90f, 0.42f);
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            if (bestScore > 0)
-            {
-                bestScoreTxt.text = string.Format(lm != null ? lm.Get("endless_best_score") : "Best Score: {0}", bestScore);
-                bestScoreTxt.color = isNewScore ? new Color(1f, 0.85f, 0.1f) : new Color(0.8f, 0.8f, 0.3f);
-                bestScoreTxt.gameObject.SetActive(true);
-            }
-            else bestScoreTxt.gameObject.SetActive(false);
-        }
+        SetupEndlessBestText("BestScoreText", new Vector2(0.10f, 0.34f), new Vector2(0.90f, 0.42f),
+            bestScore > 0, LocalizationManager.LFmt("endless_best_score", "Best Score: {0}", bestScore),
+            isNewScore ? goldColor : normalColor);
 
-        var bestTierTxt = FindOrCreateBestText(endlessSummaryScreen, "BestTierText");
-        if (bestTierTxt != null)
-        {
-            var rt = (RectTransform)bestTierTxt.transform;
-            rt.anchorMin = new Vector2(0.10f, 0.27f);
-            rt.anchorMax = new Vector2(0.90f, 0.35f);
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            if (bestTier > 0)
-            {
-                bestTierTxt.text = string.Format(lm != null ? lm.Get("endless_best_tier") : "Best Tier: {0}", bestTier);
-                bestTierTxt.color = isNewTier ? new Color(1f, 0.85f, 0.1f) : new Color(0.8f, 0.8f, 0.3f);
-                bestTierTxt.gameObject.SetActive(true);
-            }
-            else bestTierTxt.gameObject.SetActive(false);
-        }
+        SetupEndlessBestText("BestTierText", new Vector2(0.10f, 0.27f), new Vector2(0.90f, 0.35f),
+            bestTier > 0, LocalizationManager.LFmt("endless_best_tier", "Best Tier: {0}", bestTier),
+            isNewTier ? goldColor : normalColor);
 
         var newRecTxt = FindOrCreateBestText(endlessSummaryScreen, "NewRecordText");
         if (newRecTxt != null)
@@ -358,16 +311,28 @@ public class UIManager : MonoBehaviour
             rt.anchorMin = new Vector2(0.10f, 0.20f);
             rt.anchorMax = new Vector2(0.90f, 0.28f);
             rt.offsetMin = rt.offsetMax = Vector2.zero;
-            if (isNewScore || isNewTier)
+            bool hasRecord = isNewScore || isNewTier;
+            newRecTxt.gameObject.SetActive(hasRecord);
+            if (hasRecord)
             {
-                newRecTxt.text = lm != null ? lm.Get("new_record") : "NEW RECORD!";
-                newRecTxt.color = new Color(1f, 0.85f, 0.1f);
+                newRecTxt.text = LocalizationManager.L("new_record", "NEW RECORD!");
+                newRecTxt.color = goldColor;
                 newRecTxt.fontSize = 36;
                 newRecTxt.fontStyle = FontStyles.Bold;
-                newRecTxt.gameObject.SetActive(true);
             }
-            else newRecTxt.gameObject.SetActive(false);
         }
+    }
+
+    void SetupEndlessBestText(string name, Vector2 anchorMin, Vector2 anchorMax, bool show, string text, Color color)
+    {
+        var txt = FindOrCreateBestText(endlessSummaryScreen, name);
+        if (txt == null) return;
+        var rt = (RectTransform)txt.transform;
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+        txt.gameObject.SetActive(show);
+        if (show) { txt.text = text; txt.color = color; }
     }
 
     public void ShowSettingsScreen()
@@ -383,21 +348,21 @@ public class UIManager : MonoBehaviour
     void UpdateLanguageButtonText()
     {
         if (languageButtonText == null) return;
-        var lm = LocalizationManager.Instance;
-        bool isEng = lm == null || lm.CurrentLanguage == LocalizationManager.Language.English;
-        if (isEng)
-        {
-            string val = lm != null ? lm.Get("lang_current_en") : null;
-            languageButtonText.text = string.IsNullOrEmpty(val) ? "Language: EN" : val;
-        }
-        else
-        {
-            string val = lm != null ? lm.Get("lang_current_th") : null;
-            languageButtonText.text = string.IsNullOrEmpty(val) ? "ภาษา: TH" : val;
-        }
+        bool isEng = LocalizationManager.Instance == null || LocalizationManager.Instance.CurrentLanguage == LocalizationManager.Language.English;
+        languageButtonText.text = isEng
+            ? LocalizationManager.L("lang_current_en", "Language: EN")
+            : LocalizationManager.L("lang_current_th", "ภาษา: TH");
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
+
+    static void SetChildText(GameObject parent, string path, string text)
+    {
+        var child = parent.transform.Find(path);
+        if (child == null) return;
+        var tmp = child.GetComponent<TextMeshProUGUI>();
+        if (tmp != null) tmp.text = text;
+    }
 
     void SetText(TextMeshProUGUI t, string key)
     {
@@ -472,27 +437,17 @@ public class UIManager : MonoBehaviour
         // Refresh level-select lock and back button labels
         if (levelButtons != null)
         {
-            string lockedStr = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("btn_locked") : "LOCKED";
+            string lockedStr = LocalizationManager.L("btn_locked", "LOCKED");
             foreach (var b in levelButtons)
             {
                 if (b == null) continue;
-                var lockText = b.transform.Find("Lock/Text") != null
-                    ? b.transform.Find("Lock/Text").GetComponent<TextMeshProUGUI>()
-                    : null;
-                if (lockText != null) lockText.text = lockedStr;
+                var lockT = b.transform.Find("Lock/Text");
+                if (lockT != null) { var tmp = lockT.GetComponent<TextMeshProUGUI>(); if (tmp != null) tmp.text = lockedStr; }
             }
             if (levelSelectScreen != null)
             {
-                var backTxt = levelSelectScreen.transform.Find("BackBtn/Text") != null
-                    ? levelSelectScreen.transform.Find("BackBtn/Text").GetComponent<TextMeshProUGUI>()
-                    : null;
-                if (backTxt != null)
-                    backTxt.text = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("btn_back") : "BACK";
-                var titleTxt = levelSelectScreen.transform.Find("Title") != null
-                    ? levelSelectScreen.transform.Find("Title").GetComponent<TextMeshProUGUI>()
-                    : null;
-                if (titleTxt != null)
-                    titleTxt.text = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("level_select_title") : "SELECT LEVEL";
+                SetChildText(levelSelectScreen, "BackBtn/Text", LocalizationManager.L("btn_back", "BACK"));
+                SetChildText(levelSelectScreen, "Title",        LocalizationManager.L("level_select_title", "SELECT LEVEL"));
             }
         }
 
@@ -535,8 +490,7 @@ public class UIManager : MonoBehaviour
         int seconds = Mathf.CeilToInt(Mathf.Max(0f, time));
         if (seconds != lastDisplayedSeconds)
         {
-            string label = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("hud_time") : "Time";
-            timerText.text = $"{label}: {seconds}s";
+            timerText.text = $"{LocalizationManager.L("hud_time", "Time")}: {seconds}s";
             lastDisplayedSeconds = seconds;
         }
         timerText.color = time < 10f ? Color.red : Color.white;
@@ -545,12 +499,12 @@ public class UIManager : MonoBehaviour
     public void UpdateScore(int score, int passScore = 0)
     {
         if (scoreText == null) return;
-        string label = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("hud_score") : "Score";
-        string pts = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("hud_pts") : "pts";
-        scoreText.text = passScore > 0 ? $"{score}/{passScore}{pts}" : $"{label}: {score}";
+        scoreText.text = passScore > 0
+            ? $"{score}/{passScore}{LocalizationManager.L("hud_pts", "pts")}"
+            : $"{LocalizationManager.L("hud_score", "Score")}: {score}";
         scoreText.color = (passScore > 0 && score >= passScore)
-            ? new Color(0.22f, 1f, 0.48f)   // green — target reached
-            : new Color(1f, 0.82f, 0.15f);  // default yellow
+            ? new Color(0.22f, 1f, 0.48f)
+            : new Color(1f, 0.82f, 0.15f);
     }
 
     public void UpdateLives(int lives)
@@ -564,10 +518,7 @@ public class UIManager : MonoBehaviour
     public void UpdateLevel(int level, int total)
     {
         if (levelText != null)
-        {
-            string label = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("hud_level") : "Level";
-            levelText.text = $"{label} {level}/{total}";
-        }
+            levelText.text = $"{LocalizationManager.L("hud_level", "Level")} {level}/{total}";
     }
 
     public void UpdateLevelText(string text)
@@ -578,14 +529,9 @@ public class UIManager : MonoBehaviour
     public void UpdateOrder(string destination, bool isRush = false)
     {
         if (orderText == null) return;
-        string destName = LocalizationManager.Instance != null
-            ? LocalizationManager.Instance.GetDestination(destination)
-            : destination;
-        var lm2 = LocalizationManager.Instance;
-        string deliverTo = lm2 != null ? lm2.Get("hud_deliver_to") : null;
-        if (string.IsNullOrEmpty(deliverTo)) deliverTo = "Deliver to:";
-        string rushLabel = lm2 != null ? lm2.Get("hud_rush_label") : null;
-        if (string.IsNullOrEmpty(rushLabel)) rushLabel = "\u26A1 RUSH!";
+        string destName  = LocalizationManager.LDest(destination);
+        string deliverTo = LocalizationManager.L("hud_deliver_to", "Deliver to:");
+        string rushLabel = LocalizationManager.L("hud_rush_label", "\u26A1 RUSH!");
         orderText.text = isRush
             ? $"{rushLabel}\n{deliverTo}\n<b>{destName}</b>"
             : $"{deliverTo}\n<b>{destName}</b>";
@@ -606,15 +552,12 @@ public class UIManager : MonoBehaviour
     public void ShowStreak(int count)
     {
         if (streakText == null) return;
-        if (count >= 2)
+        bool show = count >= 2;
+        streakText.gameObject.SetActive(show);
+        if (show)
         {
-            streakText.text = string.Format(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("streak_label") : "x{0} STREAK!", count);
+            streakText.text = LocalizationManager.LFmt("streak_label", "x{0} STREAK!", count);
             streakText.color = count >= 5 ? new Color(1f, 0.6f, 0f) : new Color(1f, 0.95f, 0.2f);
-            streakText.gameObject.SetActive(true);
-        }
-        else
-        {
-            streakText.gameObject.SetActive(false);
         }
     }
 
@@ -684,7 +627,7 @@ public class UIManager : MonoBehaviour
     public void UpdateRushCountdown(int seconds)
     {
         if (levelCompleteCountdownText != null)
-            levelCompleteCountdownText.text = string.Format(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("rush_countdown") : "Auto-advancing in {0}...", seconds);
+            levelCompleteCountdownText.text = LocalizationManager.LFmt("rush_countdown", "Auto-advancing in {0}...", seconds);
     }
 
     public void HideRushCountdown()
@@ -729,7 +672,10 @@ public class UIManager : MonoBehaviour
     {
         if (levelButtons == null) return;
         int unlocked = GameManager.GetUnlockedLevel(mode);
-        var lm = LocalizationManager.Instance;
+        string timeFmt  = LocalizationManager.L("level_select_time_fmt",  "{0}s");
+        string scoreFmt = LocalizationManager.L("level_select_score_fmt", "{0}pts");
+        bool showLives = mode == GameMode.Normal || mode == GameMode.HeartExtreme;
+
         for (int i = 0; i < levelButtons.Length; i++)
         {
             bool isUnlocked = i <= unlocked;
@@ -738,21 +684,14 @@ public class UIManager : MonoBehaviour
             if (lockOverlay != null) lockOverlay.gameObject.SetActive(!isUnlocked);
 
             var subT = levelButtons[i].transform.Find("SubInfo");
-            if (subT != null)
-            {
-                var subTMP = subT.GetComponent<TextMeshProUGUI>();
-                if (subTMP != null)
-                {
-                    float t = GameManager.Levels[i].time;
-                    int s   = GameManager.Levels[i].scoreNeeded;
-                    string timeFmt  = lm != null ? lm.Get("level_select_time_fmt")  : "{0}s";
-                    string scoreFmt = lm != null ? lm.Get("level_select_score_fmt") : "{0}pts";
-                    string info = string.Format(timeFmt, (int)t) + "  " + string.Format(scoreFmt, s);
-                    if (mode == GameMode.Normal || mode == GameMode.HeartExtreme)
-                        info += "  \u2665" + GameManager.Levels[i].lives;
-                    subTMP.text = info;
-                }
-            }
+            if (subT == null) continue;
+            var subTMP = subT.GetComponent<TextMeshProUGUI>();
+            if (subTMP == null) continue;
+
+            var level = GameManager.Levels[i];
+            string info = string.Format(timeFmt, (int)level.time) + "  " + string.Format(scoreFmt, level.scoreNeeded);
+            if (showLives) info += "  \u2665" + level.lives;
+            subTMP.text = info;
         }
     }
 
@@ -793,11 +732,8 @@ public class UIManager : MonoBehaviour
 
     public void ShowTutorialHints()
     {
-        var lm = LocalizationManager.Instance;
-        string pickup  = lm != null ? lm.Get("tutorial_pickup")  : "Pick up packages here!";
-        string deliver = lm != null ? lm.Get("tutorial_deliver") : "Deliver to the glowing zone!";
-        ShowFeedback(pickup, true);
-        StartCoroutine(DelayedTutorialHint(deliver));
+        ShowFeedback(LocalizationManager.L("tutorial_pickup", "Pick up packages here!"), true);
+        StartCoroutine(DelayedTutorialHint(LocalizationManager.L("tutorial_deliver", "Deliver to the glowing zone!")));
     }
 
     IEnumerator DelayedTutorialHint(string message)
@@ -858,8 +794,7 @@ public class UIManager : MonoBehaviour
 
     void HandlePowerUpActivated(string typeName, float duration)
     {
-        string labelKey = "powerup_timer_" + typeName;
-        string label = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get(labelKey) : typeName;
+        string label = LocalizationManager.L("powerup_timer_" + typeName, typeName);
         if (powerUpTimerCoroutines.ContainsKey(typeName) && powerUpTimerCoroutines[typeName] != null)
             StopCoroutine(powerUpTimerCoroutines[typeName]);
         powerUpTimerCoroutines[typeName] = StartCoroutine(PowerUpTimerRoutine(typeName, label, duration));
@@ -993,9 +928,8 @@ public class UIManager : MonoBehaviour
     void UpdateFullscreenButtonLabel()
     {
         if (fullscreenLabelText == null) return;
-        var lm = LocalizationManager.Instance;
-        string key = lm != null ? lm.Get("settings_fullscreen") : "Fullscreen";
-        fullscreenLabelText.text = Screen.fullScreen ? "[ON] " + key : "[OFF] " + key;
+        string label = LocalizationManager.L("settings_fullscreen", "Fullscreen");
+        fullscreenLabelText.text = Screen.fullScreen ? "[ON] " + label : "[OFF] " + label;
     }
 
     // ── Interactive tutorial ────────────────────────────────────────────────
@@ -1043,8 +977,7 @@ public class UIManager : MonoBehaviour
         skipTxtGO.transform.SetParent(skipGO.transform, false);
         AnchorFull(skipTxtGO);
         var skipTmp = skipTxtGO.AddComponent<TextMeshProUGUI>();
-        var lm = LocalizationManager.Instance;
-        skipTmp.text = lm != null ? lm.Get("btn_skip") : "SKIP";
+        skipTmp.text = LocalizationManager.L("btn_skip", "SKIP");
         skipTmp.fontSize = 22;
         skipTmp.fontStyle = FontStyles.Bold;
         skipTmp.alignment = TextAlignmentOptions.Center;
@@ -1054,20 +987,18 @@ public class UIManager : MonoBehaviour
         bool skipped = false;
         skipBtn.onClick.AddListener(() => { skipped = true; });
 
-        // Phase 1: pickup
-        instrText.text = lm != null ? lm.Get("tutorial_pickup") : "Pick up packages here!";
+        instrText.text = LocalizationManager.L("tutorial_pickup", "Pick up packages here!");
         overlayGO.SetActive(true);
         yield return new WaitUntil(() => skipped || gm.player == null || gm.player.HasPackage);
 
         if (!skipped)
         {
-            // Phase 2: deliver
-            instrText.text = lm != null ? lm.Get("tutorial_deliver") : "Deliver to the glowing zone!";
+            instrText.text = LocalizationManager.L("tutorial_deliver", "Deliver to the glowing zone!");
             yield return new WaitUntil(() => skipped || gm.player == null || !gm.player.HasPackage);
 
             if (!skipped)
             {
-                instrText.text = lm != null ? lm.Get("tutorial_done") : "Great job! You're ready!";
+                instrText.text = LocalizationManager.L("tutorial_done", "Great job! You're ready!");
                 yield return new WaitForSecondsRealtime(1.8f);
             }
         }

@@ -71,16 +71,13 @@ public class GameManager : MonoBehaviour
     };
     const int TotalLevels = 30;
 
-    static string UnlockKey(GameMode mode)
+    static string UnlockKey(GameMode mode) => mode switch
     {
-        switch (mode)
-        {
-            case GameMode.Rush:          return "Unlocked_Rush";
-            case GameMode.HeartExtreme:  return "Unlocked_HeartExtreme";
-            case GameMode.RushExtreme:   return "Unlocked_RushExtreme";
-            default:                     return "Unlocked_Normal";
-        }
-    }
+        GameMode.Rush         => "Unlocked_Rush",
+        GameMode.HeartExtreme => "Unlocked_HeartExtreme",
+        GameMode.RushExtreme  => "Unlocked_RushExtreme",
+        _                     => "Unlocked_Normal"
+    };
 
     public static int GetUnlockedLevel(GameMode mode)
     {
@@ -199,7 +196,7 @@ public class GameManager : MonoBehaviour
         if (!lowTimePlayed && TimeRemaining <= 10f)
         {
             lowTimePlayed = true;
-            if (AudioManager.Instance != null) AudioManager.Instance.PlayTimerWarn();
+            AudioManager.Play(a => a.PlayTimerWarn());
         }
 
         if (TimeRemaining <= 0f)
@@ -275,7 +272,7 @@ public class GameManager : MonoBehaviour
         uiManager.UpdateScore(Score, PassScore);
         if (IsHeartMode) uiManager.UpdateLives(Lives);
         UpdateLevelDisplay();
-        if (AudioManager.Instance != null) AudioManager.Instance.PlayBGM();
+        AudioManager.Play(a => a.PlayBGM());
         if (currentLevel == 0)
         {
             if (PlayerPrefs.GetInt("TutorialDone", 0) == 0)
@@ -304,7 +301,7 @@ public class GameManager : MonoBehaviour
         if (State != GameState.Playing || isPaused) return;
         isPaused = true;
         Time.timeScale = 0f;
-        if (AudioManager.Instance != null) AudioManager.Instance.PauseBGM();
+        AudioManager.Play(a => a.PauseBGM());
         uiManager.ShowPauseScreen();
     }
 
@@ -313,7 +310,7 @@ public class GameManager : MonoBehaviour
         if (!isPaused) return;
         isPaused = false;
         Time.timeScale = 1f;
-        if (AudioManager.Instance != null) AudioManager.Instance.ResumeBGM();
+        AudioManager.Play(a => a.ResumeBGM());
         uiManager.HidePauseScreen();
     }
 
@@ -329,7 +326,7 @@ public class GameManager : MonoBehaviour
         UpdateZoneHighlights();
         DeactivateAllNPCs();
         if (PowerUpManager.Instance != null) PowerUpManager.Instance.OnGameStateChanged(GameState.GameOver);
-        if (AudioManager.Instance != null) { AudioManager.Instance.StopBGM(); AudioManager.Instance.PlayGameOver(); }
+        AudioManager.Play(a => { a.StopBGM(); a.PlayGameOver(); });
 
         if (CurrentMode == GameMode.Endless)
         {
@@ -392,13 +389,11 @@ public class GameManager : MonoBehaviour
         if (Time.time - lastHitTime < HitImmunityDuration) return;
         lastHitTime = Time.time;
 
-        var lm = LocalizationManager.Instance;
         if (IsHeartMode)
         {
             Lives--;
             uiManager.UpdateLives(Lives);
-            string msg = lm != null ? lm.Get("feedback_crash_life") : "CRASH! -1 ♥";
-            uiManager.ShowFeedback(msg, false);
+            uiManager.ShowFeedback(LocalizationManager.L("feedback_crash_life", "CRASH! -1 ♥"), false);
             if (Lives <= 0)
             {
                 TimeRemaining = 0f;
@@ -409,11 +404,11 @@ public class GameManager : MonoBehaviour
         else
         {
             TimeRemaining = Mathf.Max(0f, TimeRemaining - 4f);
-            uiManager.ShowFeedback(lm != null ? lm.Get("feedback_crash") : "CRASH! -4s", false);
+            uiManager.ShowFeedback(LocalizationManager.L("feedback_crash", "CRASH! -4s"), false);
         }
 
         uiManager.ShowCrashFlash();
-        if (AudioManager.Instance != null) AudioManager.Instance.PlayCrash();
+        AudioManager.Play(a => a.PlayCrash());
 
         if (mainCamera != null)
         {
@@ -426,85 +421,86 @@ public class GameManager : MonoBehaviour
     {
         if (State != GameState.Playing || TimeRemaining <= 0f) return false;
 
-        if (destination == CurrentDestination)
+        if (destination != CurrentDestination)
+            return HandleWrongDelivery();
+
+        return HandleCorrectDelivery();
+    }
+
+    bool HandleCorrectDelivery()
+    {
+        int basePoints = isRushOrder ? 20 : 10;
+        deliveryStreak++;
+        int streakBonus = deliveryStreak >= 5 ? 5 : deliveryStreak >= 3 ? 2 : 0;
+        int totalPoints = basePoints + streakBonus;
+        Score += totalPoints;
+
+        float timeBonus = CurrentMode == GameMode.Endless ? endlessDeliveryBonus : 4f;
+        TimeRemaining += timeBonus;
+        uiManager.UpdateScore(Score, PassScore);
+
+        string bonusStr = timeBonus % 1f == 0f ? $"{timeBonus:0}s" : $"{timeBonus:0.0}s";
+        string feedbackKey = isRushOrder ? "feedback_rush" : "feedback_delivered";
+        string fallback = isRushOrder ? "RUSH! +{0} +{1}" : "Delivered! +{0} +{1}";
+        uiManager.ShowFeedback(LocalizationManager.LFmt(feedbackKey, fallback, totalPoints, bonusStr), true);
+
+        if (streakBonus > 0)
+            uiManager.ShowFeedback(LocalizationManager.LFmt("streak_bonus", "+{0} streak bonus!", streakBonus), true);
+
+        uiManager.ShowStreak(deliveryStreak);
+        AudioManager.Play(a => a.PlayDelivered());
+        uiManager.ShowScorePopup(totalPoints);
+
+        if ((IsRushMode || IsHeartMode) && Score >= Levels[currentLevel].scoreNeeded)
         {
-            int basePoints = isRushOrder ? 20 : 10;
-            deliveryStreak++;
-            int streakBonus = deliveryStreak >= 5 ? 5 : deliveryStreak >= 3 ? 2 : 0;
-            int totalPoints = basePoints + streakBonus;
-            Score += totalPoints;
-            float timeBonus = CurrentMode == GameMode.Endless ? endlessDeliveryBonus : 4f;
-            TimeRemaining += timeBonus;
-            uiManager.UpdateScore(Score, PassScore);
-            string bonusStr = timeBonus % 1f == 0f ? $"{timeBonus:0}s" : $"{timeBonus:0.0}s";
-            var lm = LocalizationManager.Instance;
-            string feedbackKey = isRushOrder ? "feedback_rush" : "feedback_delivered";
-            string feedbackFmt = lm != null ? lm.Get(feedbackKey) : (isRushOrder ? "RUSH! +{0} +{1}" : "Delivered! +{0} +{1}");
-            string feedback = string.Format(feedbackFmt, totalPoints, bonusStr);
-            uiManager.ShowFeedback(feedback, true);
-            if (streakBonus > 0)
-                uiManager.ShowFeedback(string.Format(lm != null ? lm.Get("streak_bonus") : "+{0} streak bonus!", streakBonus), true);
-            uiManager.ShowStreak(deliveryStreak);
-            if (AudioManager.Instance != null) AudioManager.Instance.PlayDelivered();
-            uiManager.ShowScorePopup(totalPoints);
-
-            if ((IsRushMode || IsHeartMode) && Score >= Levels[currentLevel].scoreNeeded)
-            {
-                bool isLast = currentLevel == TotalLevels - 1;
-                if (isLast) { EndGame(); return true; }
-                State = GameState.GameOver;
-                if (PowerUpManager.Instance != null) PowerUpManager.Instance.OnGameStateChanged(GameState.GameOver);
-                StartCoroutine(RushLevelClearRoutine());
-                return true;
-            }
-
-            if (CurrentMode == GameMode.Endless)
-            {
-                endlessTierProgress += totalPoints;
-                int tierTarget = 40 + endlessTier * 25 + (endlessTier / 3) * 20;
-                if (endlessTierProgress >= tierTarget)
-                {
-                    endlessTierProgress -= tierTarget;
-                    EndlessTierUp();
-                }
-            }
-
-            deliveryCount++;
-            GenerateNewOrder();
-            player.TriggerSpeedBoost();
+            if (currentLevel == TotalLevels - 1) { EndGame(); return true; }
+            State = GameState.GameOver;
+            if (PowerUpManager.Instance != null) PowerUpManager.Instance.OnGameStateChanged(GameState.GameOver);
+            StartCoroutine(RushLevelClearRoutine());
             return true;
+        }
+
+        if (CurrentMode == GameMode.Endless)
+        {
+            endlessTierProgress += totalPoints;
+            int tierTarget = 40 + endlessTier * 25 + (endlessTier / 3) * 20;
+            if (endlessTierProgress >= tierTarget)
+            {
+                endlessTierProgress -= tierTarget;
+                EndlessTierUp();
+            }
+        }
+
+        deliveryCount++;
+        GenerateNewOrder();
+        player.TriggerSpeedBoost();
+        return true;
+    }
+
+    bool HandleWrongDelivery()
+    {
+        deliveryStreak = 0;
+        string destName = LocalizationManager.LDest(CurrentDestination);
+
+        if (CurrentMode == GameMode.Endless && endlessTier >= 2)
+        {
+            float penalty = Mathf.Min(2f + (endlessTier - 2) * 0.2f, 5f);
+            TimeRemaining = Mathf.Max(0f, TimeRemaining - penalty);
+            uiManager.ShowFeedback(LocalizationManager.LFmt("feedback_wrong_time", "Wrong! -{0}s", penalty.ToString("0.#")), false);
+        }
+        else if (IsRushMode)
+        {
+            TimeRemaining = Mathf.Max(0f, TimeRemaining - RushWrongPenalty);
+            uiManager.ShowFeedback(LocalizationManager.LFmt("feedback_wrong_rush", "Wrong! Go to {0} (-{1}s)", destName, RushWrongPenalty), false);
         }
         else
         {
-            deliveryStreak = 0;
-            var lmW = LocalizationManager.Instance;
-            if (CurrentMode == GameMode.Endless && endlessTier >= 2)
-            {
-                float penalty = Mathf.Min(2f + (endlessTier - 2) * 0.2f, 5f);
-                TimeRemaining = Mathf.Max(0f, TimeRemaining - penalty);
-                string msg = string.Format(LocalizationManager.Instance.Get("feedback_wrong_time"), penalty.ToString("0.#"));
-                uiManager.ShowFeedback(msg, false);
-            }
-            else
-            {
-                if (IsRushMode)
-                {
-                    TimeRemaining = Mathf.Max(0f, TimeRemaining - RushWrongPenalty);
-                    string rushWrongFmt = lmW != null ? lmW.Get("feedback_wrong_rush") : "Wrong! Go to {0} (-{1}s)";
-                    string rushDest = lmW != null ? lmW.GetDestination(CurrentDestination) : CurrentDestination;
-                    uiManager.ShowFeedback(string.Format(rushWrongFmt, rushDest, RushWrongPenalty), false);
-                }
-                else
-                {
-                    string destName = lmW != null ? lmW.GetDestination(CurrentDestination) : CurrentDestination;
-                    string wrongFmt = lmW != null ? lmW.Get("feedback_wrong") : "Wrong! Go to {0}";
-                    uiManager.ShowFeedback(string.Format(wrongFmt, destName), false);
-                }
-            }
-            uiManager.ShowStreak(0);
-            if (AudioManager.Instance != null) AudioManager.Instance.PlayWrong();
-            return false;
+            uiManager.ShowFeedback(LocalizationManager.LFmt("feedback_wrong", "Wrong! Go to {0}", destName), false);
         }
+
+        uiManager.ShowStreak(0);
+        AudioManager.Play(a => a.PlayWrong());
+        return false;
     }
 
     // ── Rush level clear ──────────────────────────────────────────────────────
@@ -575,7 +571,7 @@ public class GameManager : MonoBehaviour
                 {
                     bossPool[i].gameObject.SetActive(true);
                     bossPool[i].RandomizePositionAwayFrom(playerPos2, 6f);
-                    uiManager.ShowFeedback(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_boss") : "BOSS INCOMING!", false);
+                    uiManager.ShowFeedback(LocalizationManager.L("feedback_boss", "BOSS INCOMING!"), false);
                 }
                 else if (!shouldBeActive)
                     bossPool[i].gameObject.SetActive(false);
@@ -585,10 +581,9 @@ public class GameManager : MonoBehaviour
         UpdateNPCSprites();
         UpdateLevelDisplay();
         ShakeCamera(0.20f, 0.18f);
-        if (AudioManager.Instance != null) AudioManager.Instance.PlayTierUp();
+        AudioManager.Play(a => a.PlayTierUp());
         string bonusStr = tierBonus % 1f == 0f ? $"{tierBonus:0}s" : $"{tierBonus:0.#}s";
-        string tierFmt = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_tier") : "TIER {0}! +{1}";
-        uiManager.ShowFeedback(string.Format(tierFmt, endlessTier + 1, bonusStr), true);
+        uiManager.ShowFeedback(LocalizationManager.LFmt("feedback_tier", "TIER {0}! +{1}", endlessTier + 1, bonusStr), true);
     }
 
     public void OnNextLevelButton()
@@ -611,7 +606,7 @@ public class GameManager : MonoBehaviour
         UpdateZoneHighlights();
         DeactivateAllNPCs();
         if (PowerUpManager.Instance != null) PowerUpManager.Instance.OnGameStateChanged(GameState.StartScreen);
-        if (AudioManager.Instance != null) AudioManager.Instance.StopBGM();
+        AudioManager.Play(a => a.StopBGM());
         uiManager.ShowModeSelectScreen();
     }
 
@@ -691,7 +686,7 @@ public class GameManager : MonoBehaviour
                 if (wasInactive && !bossJustActivated)
                 {
                     bossJustActivated = true;
-                    uiManager.ShowFeedback(LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("feedback_boss") : "BOSS INCOMING!", false);
+                    uiManager.ShowFeedback(LocalizationManager.L("feedback_boss", "BOSS INCOMING!"), false);
                 }
             }
         }
@@ -726,7 +721,7 @@ public class GameManager : MonoBehaviour
     {
         if (CurrentMode == GameMode.Endless)
         {
-            string tierLabel = LocalizationManager.Instance != null ? LocalizationManager.Instance.Get("hud_tier") : "Tier";
+            string tierLabel = LocalizationManager.L("hud_tier", "Tier");
             uiManager.UpdateLevelText($"{tierLabel} {endlessTier + 1}");
         }
         else

@@ -69,7 +69,7 @@
     { "key": "feedback_tier",      "value": "TIER {0}! +{1}" },
     { "key": "feedback_pickup",    "value": "Package picked up!" },
     { "key": "feedback_carrying",  "value": "Already carrying a package!" },
-    { "key": "feedback_shield",    "value": "Shield! 2s" },
+    { "key": "feedback_shield",    "value": "Shield! 3s" },
     { "key": "feedback_rocket",    "value": "Rocket! 2s" },
     { "key": "feedback_clock",     "value": "Time Freeze! 4s" },
     { "key": "rush_countdown",     "value": "Auto-advancing in {0}..." },

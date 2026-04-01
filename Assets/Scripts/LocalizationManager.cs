@@ -90,4 +90,21 @@ public class LocalizationManager : MonoBehaviour
             default:        return internalName;
         }
     }
+
+    public static string L(string key, string fallback = null)
+    {
+        if (Instance == null) return fallback ?? key;
+        string value = Instance.Get(key);
+        return string.IsNullOrEmpty(value) ? (fallback ?? key) : value;
+    }
+
+    public static string LDest(string internalName)
+    {
+        return Instance != null ? Instance.GetDestination(internalName) : internalName;
+    }
+
+    public static string LFmt(string key, string fallback, params object[] args)
+    {
+        return string.Format(L(key, fallback), args);
+    }
 }
