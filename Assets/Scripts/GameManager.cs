@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public enum GameState { StartScreen, Playing, GameOver }
+public enum GameState { StartScreen, CarSelect, Playing, GameOver }
 public enum GameMode  { Normal, Rush, Endless, HeartExtreme, RushExtreme }
 
 public class GameManager : MonoBehaviour
@@ -17,6 +17,11 @@ public class GameManager : MonoBehaviour
     [Header("Car Sprites")]
     public Sprite[] normalCarSprites;
     public Sprite[] bossCarSprites;
+
+    [Header("Car System")]
+    public CarData[] carCatalog;
+    public CarData selectedCar;
+    public static event System.Action OnCarChanged;
 
     public GameState State       { get; private set; } = GameState.StartScreen;
     public GameMode  CurrentMode { get; private set; } = GameMode.Normal;
@@ -119,6 +124,106 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // ── Coin system ──────────────────────────────────────────────────────────
+    public int Coins => PlayerPrefs.GetInt("Coins", 0);
+
+    public void AddCoins(int amount)
+    {
+        PlayerPrefs.SetInt("Coins", Coins + amount);
+        PlayerPrefs.Save();
+    }
+
+    public bool IsCarUnlocked(CarData car)
+    {
+        if (car == null) return false;
+        if (car.unlockCost == 0 && car.requiredLevel == 0 && car.requiredEndlessTier10 == 0) return true;
+        return PlayerPrefs.GetInt("CarUnlocked_" + car.carId, 0) == 1;
+    }
+
+    public bool CanUnlockCar(CarData car)
+    {
+        if (car == null) return false;
+        if (Coins < car.unlockCost) return false;
+        if (car.requiredLevel > 0)
+        {
+            if (GetUnlockedLevel(GameMode.Normal) < car.requiredLevel) return false;
+            if (GetUnlockedLevel(GameMode.Rush) < car.requiredLevel) return false;
+        }
+        if (car.requiredEndlessTier10 > 0)
+        {
+            if (GetEndlessTier10Count() < car.requiredEndlessTier10) return false;
+        }
+        return true;
+    }
+
+    public string GetUnlockRequirementText(CarData car)
+    {
+        var parts = new System.Collections.Generic.List<string>();
+        if (car.requiredLevel > 0)
+        {
+            bool heartOk = GetUnlockedLevel(GameMode.Normal) >= car.requiredLevel;
+            bool rushOk = GetUnlockedLevel(GameMode.Rush) >= car.requiredLevel;
+            string heartIcon = heartOk ? "\u2713" : "\u2717";
+            string rushIcon = rushOk ? "\u2713" : "\u2717";
+            parts.Add($"{heartIcon} Heart Lv.{car.requiredLevel}");
+            parts.Add($"{rushIcon} Rush Lv.{car.requiredLevel}");
+        }
+        if (car.requiredEndlessTier10 > 0)
+        {
+            int count = GetEndlessTier10Count();
+            string icon = count >= car.requiredEndlessTier10 ? "\u2713" : "\u2717";
+            parts.Add($"{icon} Endless T10 x{count}/{car.requiredEndlessTier10}");
+        }
+        return string.Join("\n", parts);
+    }
+
+    public static int GetEndlessTier10Count()
+        => PlayerPrefs.GetInt("EndlessTier10Count", 0);
+
+    static void IncrementEndlessTier10()
+    {
+        PlayerPrefs.SetInt("EndlessTier10Count", GetEndlessTier10Count() + 1);
+        PlayerPrefs.Save();
+    }
+
+    public bool TryUnlockCar(CarData car)
+    {
+        if (car == null || IsCarUnlocked(car)) return false;
+        if (!CanUnlockCar(car)) return false;
+        AddCoins(-car.unlockCost);
+        PlayerPrefs.SetInt("CarUnlocked_" + car.carId, 1);
+        PlayerPrefs.Save();
+        return true;
+    }
+
+    public void SelectCar(CarData car)
+    {
+        if (car == null) return;
+        selectedCar = car;
+        PlayerPrefs.SetString("SelectedCar", car.carId);
+        PlayerPrefs.Save();
+        OnCarChanged?.Invoke();
+    }
+
+    void LoadSelectedCar()
+    {
+        string savedId = PlayerPrefs.GetString("SelectedCar", "");
+        if (carCatalog != null)
+        {
+            foreach (var car in carCatalog)
+                if (car != null && car.carId == savedId)
+                { selectedCar = car; return; }
+            if (carCatalog.Length > 0 && carCatalog[0] != null)
+                selectedCar = carCatalog[0];
+        }
+    }
+
+    public void ShowCarSelect()
+    {
+        State = GameState.CarSelect;
+        uiManager.ShowCarSelectScreen();
+    }
+
     public bool TimerFrozen;
 
     int currentLevel;
@@ -140,7 +245,7 @@ public class GameManager : MonoBehaviour
 
     Camera mainCamera;
     float lastHitTime = -10f;
-    const float HitImmunityDuration = 2.0f;
+    float HitImmunityDuration => selectedCar != null ? selectedCar.durabilitySeconds : 2.0f;
     const float RushWrongPenalty = 2f;
 
     void Awake()
@@ -168,6 +273,7 @@ public class GameManager : MonoBehaviour
         foreach (var n in all) n.gameObject.SetActive(false);
 
         currentLevel = 0;
+        LoadSelectedCar();
         State = GameState.StartScreen;
         uiManager.ShowStartScreen();
     }
@@ -235,7 +341,8 @@ public class GameManager : MonoBehaviour
         isPaused = false;
         TimerFrozen = false;
         lastHitTime = -10f;
-        MaxLives = IsHeartMode ? Levels[currentLevel].lives : 0;
+        int carHearts = (selectedCar != null) ? selectedCar.bonusHearts : 0;
+        MaxLives = IsHeartMode ? Levels[currentLevel].lives + carHearts : 0;
         Lives = MaxLives;
         Time.timeScale = 1f;
         State = GameState.Playing;
@@ -429,27 +536,29 @@ public class GameManager : MonoBehaviour
 
     bool HandleCorrectDelivery()
     {
-        int basePoints = isRushOrder ? 20 : 10;
+        int baseCoins = isRushOrder ? 20 : 10;
         deliveryStreak++;
         int streakBonus = deliveryStreak >= 5 ? 5 : deliveryStreak >= 3 ? 2 : 0;
-        int totalPoints = basePoints + streakBonus;
-        Score += totalPoints;
+        int totalCoins = baseCoins + streakBonus;
+        Score += totalCoins;
+        AddCoins(totalCoins);
 
         float timeBonus = CurrentMode == GameMode.Endless ? endlessDeliveryBonus : 4f;
         TimeRemaining += timeBonus;
         uiManager.UpdateScore(Score, PassScore);
+        uiManager.UpdateCoinDisplay(Coins);
 
         string bonusStr = timeBonus % 1f == 0f ? $"{timeBonus:0}s" : $"{timeBonus:0.0}s";
         string feedbackKey = isRushOrder ? "feedback_rush" : "feedback_delivered";
         string fallback = isRushOrder ? "RUSH! +{0} +{1}" : "Delivered! +{0} +{1}";
-        uiManager.ShowFeedback(LocalizationManager.LFmt(feedbackKey, fallback, totalPoints, bonusStr), true);
+        uiManager.ShowFeedback(LocalizationManager.LFmt(feedbackKey, fallback, totalCoins, bonusStr), true);
 
         if (streakBonus > 0)
             uiManager.ShowFeedback(LocalizationManager.LFmt("streak_bonus", "+{0} streak bonus!", streakBonus), true);
 
         uiManager.ShowStreak(deliveryStreak);
         AudioManager.Play(a => a.PlayDelivered());
-        uiManager.ShowScorePopup(totalPoints);
+        uiManager.ShowScorePopup(totalCoins);
 
         if ((IsRushMode || IsHeartMode) && Score >= Levels[currentLevel].scoreNeeded)
         {
@@ -462,7 +571,7 @@ public class GameManager : MonoBehaviour
 
         if (CurrentMode == GameMode.Endless)
         {
-            endlessTierProgress += totalPoints;
+            endlessTierProgress += totalCoins;
             int tierTarget = 40 + endlessTier * 25 + (endlessTier / 3) * 20;
             if (endlessTierProgress >= tierTarget)
             {
@@ -530,6 +639,7 @@ public class GameManager : MonoBehaviour
     void EndlessTierUp()
     {
         endlessTier++;
+        if (endlessTier + 1 == 10) IncrementEndlessTier10();
 
         float tierBonus = endlessTier <= 10 ? 20f : endlessTier <= 20 ? 15f : 10f;
         TimeRemaining += tierBonus;

@@ -14,6 +14,7 @@ public class PlayerController : MonoBehaviour
 
     Rigidbody2D rb;
     Transform spriteChild;
+    float carSpeedMultiplier = 1f;
     SpriteRenderer auraRenderer;
     SpriteRenderer packageIconRenderer;
     Vector2 moveInput;
@@ -144,12 +145,33 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    void OnEnable()  { GameManager.OnCarChanged += ApplyCarData; }
+    void OnDisable() { GameManager.OnCarChanged -= ApplyCarData; }
+
     void FixedUpdate()
     {
         boostTimer -= Time.fixedDeltaTime;
-        float speed = boostTimer > 0f ? BoostSpeed : moveSpeed;
+        float speed = boostTimer > 0f ? BoostSpeed : (moveSpeed * carSpeedMultiplier);
         if (rocketTimer > 0f) speed *= RocketMultiplier;
         rb.linearVelocity = moveInput * speed;
+    }
+
+    public void ApplyCarData()
+    {
+        var car = GameManager.Instance != null ? GameManager.Instance.selectedCar : null;
+        if (car == null) return;
+        carSpeedMultiplier = car.speedMultiplier;
+        var col = GetComponent<BoxCollider2D>();
+        if (col != null) col.size = car.colliderSize;
+        if (spriteChild != null)
+        {
+            spriteChild.localScale = Vector3.one * car.spriteScale;
+            if (car.carSprite != null)
+            {
+                var sr = spriteChild.GetComponent<SpriteRenderer>();
+                if (sr != null) sr.sprite = car.carSprite;
+            }
+        }
     }
 
     void UpdateAura()
@@ -263,6 +285,7 @@ public class PlayerController : MonoBehaviour
     public void ResetPlayer()
     {
         transform.position = startPosition;
+        rb.rotation = 0f;
         moveInput = Vector2.zero;
         rb.linearVelocity = Vector2.zero;
         boostTimer = 0f;
@@ -271,6 +294,7 @@ public class PlayerController : MonoBehaviour
         HasShield = false;
         if (auraRenderer != null) auraRenderer.color = Color.clear;
         if (joystick != null) joystick.Reset();
+        ApplyCarData();
         HasPackage = false;
         if (packageIconRenderer != null) packageIconRenderer.enabled = false;
         if (GameManager.Instance != null)

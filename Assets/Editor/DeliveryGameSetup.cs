@@ -374,6 +374,85 @@ public static class DeliveryGameSetup
                     RewireGO(ref uiManager.levelSelectScreen,    "LevelSelectScreen");
                     RewireGO(ref uiManager.pauseScreen,          "PauseScreen");
                     RewireGO(ref uiManager.settingsScreen,       "SettingsScreen");
+                    RewireGO(ref uiManager.carSelectScreen,      "CarSelectScreen");
+
+                    // Car select refs
+                    if (uiManager.carSelectBackButton == null)   uiManager.carSelectBackButton  = RewireComp<Button>("CarSelectScreen/CarBackButton");
+                    if (uiManager.startCarSelectButton == null)  uiManager.startCarSelectButton = RewireComp<Button>("StartScreen/StartCarSelectButton");
+                    if (uiManager.startCarSelectButton == null)
+                    {
+                        var startScreenT = canvasT2.Find("StartScreen");
+                        if (startScreenT != null)
+                        {
+                            var csBtn = MakeButton(startScreenT.gameObject, "StartCarSelectButton", "SELECT CAR",
+                                new Vector2(0.35f, 0.10f), new Vector2(0.65f, 0.17f), Vector2.zero, Vector2.zero);
+                            ApplyButtonColor(csBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
+                            uiManager.startCarSelectButton = csBtn;
+                        }
+                    }
+
+                    // Build CarSelectScreen if missing
+                    if (uiManager.carSelectScreen == null)
+                    {
+                        var carSelectGO2 = MakeFullScreenPanel(canvasT2.gameObject, "CarSelectScreen", new Color(0.05f, 0.06f, 0.13f, 0.93f));
+                        carSelectGO2.SetActive(false);
+                        uiManager.carSelectScreen = carSelectGO2;
+
+                        var csTitleTxt2 = MakeTMP(carSelectGO2, "CarSelectTitle", "SELECT CAR", 52, TextAlignmentOptions.Center,
+                            new Vector2(0.10f, 0.85f), new Vector2(0.90f, 0.95f), Vector2.zero, Vector2.zero);
+                        csTitleTxt2.color = new Color(0.85f, 0.65f, 0.20f);
+                        uiManager.carSelectTitleText = csTitleTxt2;
+
+                        var csCoinTxt2 = MakeTMP(carSelectGO2, "CoinBalance", "Coins: 0", 28, TextAlignmentOptions.MidlineRight,
+                            new Vector2(0.55f, 0.88f), new Vector2(0.95f, 0.95f), Vector2.zero, Vector2.zero);
+                        csCoinTxt2.color = new Color(1f, 0.85f, 0.1f);
+                        uiManager.coinBalanceText = csCoinTxt2;
+
+                        var csScrollGO2 = new GameObject("CarScroll", typeof(RectTransform));
+                        csScrollGO2.transform.SetParent(carSelectGO2.transform, false);
+                        var csScrollRT2 = csScrollGO2.GetComponent<RectTransform>();
+                        csScrollRT2.anchorMin = new Vector2(0.03f, 0.15f);
+                        csScrollRT2.anchorMax = new Vector2(0.97f, 0.84f);
+                        csScrollRT2.offsetMin = csScrollRT2.offsetMax = Vector2.zero;
+                        var sr2 = csScrollGO2.AddComponent<ScrollRect>();
+                        sr2.horizontal = true; sr2.vertical = false;
+                        csScrollGO2.AddComponent<Mask>().showMaskGraphic = false;
+                        csScrollGO2.AddComponent<Image>().color = new Color(0, 0, 0, 0.01f);
+
+                        var csContentGO2 = new GameObject("Content", typeof(RectTransform));
+                        csContentGO2.transform.SetParent(csScrollGO2.transform, false);
+                        var csContentRT2 = csContentGO2.GetComponent<RectTransform>();
+                        csContentRT2.anchorMin = new Vector2(0f, 0f);
+                        csContentRT2.anchorMax = new Vector2(0f, 1f);
+                        csContentRT2.pivot = new Vector2(0f, 0.5f);
+                        csContentRT2.offsetMin = csContentRT2.offsetMax = Vector2.zero;
+                        sr2.content = csContentRT2;
+
+                        var hlg2 = csContentGO2.AddComponent<HorizontalLayoutGroup>();
+                        hlg2.spacing = 16;
+                        hlg2.padding = new RectOffset(16, 16, 8, 8);
+                        hlg2.childAlignment = TextAnchor.MiddleCenter;
+                        hlg2.childForceExpandWidth = false;
+                        hlg2.childForceExpandHeight = true;
+                        var csf2 = csContentGO2.AddComponent<ContentSizeFitter>();
+                        csf2.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+                        csf2.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+                        uiManager.carSelectContent = csContentGO2.transform;
+
+                        var csBackBtn2 = MakeButton(carSelectGO2, "CarBackButton", "BACK",
+                            new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+                        ApplyButtonColor(csBackBtn2, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
+                        uiManager.carSelectBackButton = csBackBtn2;
+                    }
+
+                    if (uiManager.carSelectTitleText == null)    uiManager.carSelectTitleText   = RewireComp<TextMeshProUGUI>("CarSelectScreen/CarSelectTitle");
+                    if (uiManager.coinBalanceText == null)       uiManager.coinBalanceText      = RewireComp<TextMeshProUGUI>("CarSelectScreen/CoinBalance");
+                    if (uiManager.carSelectContent == null)
+                    {
+                        var scrollT = canvasT2.Find("CarSelectScreen/CarScroll/Content");
+                        if (scrollT != null) uiManager.carSelectContent = scrollT;
+                    }
 
                     // Buttons
                     if (uiManager.startButton == null)            uiManager.startButton            = RewireComp<Button>("StartScreen/StartButton");
@@ -486,6 +565,20 @@ public static class DeliveryGameSetup
                     {
                         var lt = hudGO2.transform.Find("LevelText");
                         if (lt != null) uiManager.levelText = lt.GetComponent<TextMeshProUGUI>();
+                    }
+
+                    // HUD coin text
+                    if (uiManager.hudCoinText == null)
+                    {
+                        var ct = hudGO2.transform.Find("CoinText");
+                        if (ct != null) uiManager.hudCoinText = ct.GetComponent<TextMeshProUGUI>();
+                    }
+                    if (uiManager.hudCoinText == null)
+                    {
+                        var coinTxt2 = MakeTMP(hudGO2, "CoinText", "Coins: 0", 22, TextAlignmentOptions.MidlineRight,
+                            new Vector2(0.72f, 0.875f), new Vector2(0.99f, 0.915f), new Vector2(-10, 0), Vector2.zero);
+                        coinTxt2.color = new Color(1f, 0.85f, 0.1f);
+                        uiManager.hudCoinText = coinTxt2;
                     }
 
                     // Re-apply TimerText anchors
@@ -858,6 +951,18 @@ public static class DeliveryGameSetup
                 AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Cars/car_boss_2.png"),
                 AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Cars/car_boss_3.png"),
             };
+
+            EnsureCarDataAssets();
+            gm.carCatalog = new CarData[]
+            {
+                AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/pickup.asset"),
+                AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/sedan.asset"),
+                AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/van.asset"),
+                AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/motorbike.asset"),
+                AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/sports_car.asset"),
+            };
+            if (gm.selectedCar == null && gm.carCatalog.Length > 0)
+                gm.selectedCar = gm.carCatalog[0];
         }
         if (playerCtrl != null && joystick != null)
             playerCtrl.joystick = joystick;
@@ -964,6 +1069,11 @@ public static class DeliveryGameSetup
         levelTxt.fontSizeMin = 14;
         levelTxt.fontSizeMax = 28;
 
+        // Coin display — right of level
+        var hudCoinTxt = MakeTMP(hudGO, "CoinText", "Coins: 0", 22, TextAlignmentOptions.MidlineRight,
+            new Vector2(0.72f, 0.875f), new Vector2(0.99f, 0.915f), new Vector2(-10, 0), Vector2.zero);
+        hudCoinTxt.color = new Color(1f, 0.85f, 0.1f);
+
         // Destination — center, dominant
         var orderTxt = MakeTMP(hudGO, "OrderText", "Deliver to:\n—", 40, TextAlignmentOptions.Center,
             new Vector2(0.19f, 0.875f), new Vector2(0.78f, 1.0f), new Vector2(-10, -8), Vector2.zero);
@@ -1059,6 +1169,10 @@ public static class DeliveryGameSetup
         var startBtn = MakeButton(startGO, "StartButton", "START GAME",
             new Vector2(0.30f, 0.28f), new Vector2(0.70f, 0.36f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(startBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
+
+        var startCarSelectBtn = MakeButton(startGO, "StartCarSelectButton", "SELECT CAR",
+            new Vector2(0.35f, 0.10f), new Vector2(0.65f, 0.17f), Vector2.zero, Vector2.zero);
+        ApplyButtonColor(startCarSelectBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         var startSettingsBtn = MakeButton(startGO, "StartSettingsButton", "\u2699 Settings",
             new Vector2(0.35f, 0.18f), new Vector2(0.65f, 0.25f), Vector2.zero, Vector2.zero);
@@ -1436,6 +1550,57 @@ public static class DeliveryGameSetup
             new Vector2(0.52f, 0.08f), new Vector2(0.92f, 0.18f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(endlessSelectBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
+        // ── Car Select Screen ────────────────────────────────────────────────
+        var carSelectGO = MakeFullScreenPanel(canvasGO, "CarSelectScreen", new Color(0.05f, 0.06f, 0.13f, 0.93f));
+        carSelectGO.SetActive(false);
+
+        var carSelectTitleTxt = MakeTMP(carSelectGO, "CarSelectTitle", "SELECT CAR", 52, TextAlignmentOptions.Center,
+            new Vector2(0.10f, 0.85f), new Vector2(0.90f, 0.95f), Vector2.zero, Vector2.zero);
+        carSelectTitleTxt.color = new Color(0.85f, 0.65f, 0.20f);
+
+        var carCoinTxt = MakeTMP(carSelectGO, "CoinBalance", "Coins: 0", 28, TextAlignmentOptions.MidlineRight,
+            new Vector2(0.55f, 0.88f), new Vector2(0.95f, 0.95f), Vector2.zero, Vector2.zero);
+        carCoinTxt.color = new Color(1f, 0.85f, 0.1f);
+
+        // Scroll area for car cards
+        var carScrollGO = new GameObject("CarScroll", typeof(RectTransform));
+        carScrollGO.transform.SetParent(carSelectGO.transform, false);
+        var carScrollRT = carScrollGO.GetComponent<RectTransform>();
+        carScrollRT.anchorMin = new Vector2(0.03f, 0.15f);
+        carScrollRT.anchorMax = new Vector2(0.97f, 0.84f);
+        carScrollRT.offsetMin = carScrollRT.offsetMax = Vector2.zero;
+        var scrollRect = carScrollGO.AddComponent<ScrollRect>();
+        scrollRect.horizontal = true;
+        scrollRect.vertical = false;
+        var scrollMask = carScrollGO.AddComponent<Mask>();
+        var scrollImg = carScrollGO.AddComponent<Image>();
+        scrollImg.color = new Color(0, 0, 0, 0.01f);
+        scrollMask.showMaskGraphic = false;
+
+        var carContentGO = new GameObject("Content", typeof(RectTransform));
+        carContentGO.transform.SetParent(carScrollGO.transform, false);
+        var carContentRT = carContentGO.GetComponent<RectTransform>();
+        carContentRT.anchorMin = new Vector2(0f, 0f);
+        carContentRT.anchorMax = new Vector2(0f, 1f);
+        carContentRT.pivot = new Vector2(0f, 0.5f);
+        carContentRT.offsetMin = carContentRT.offsetMax = Vector2.zero;
+        scrollRect.content = carContentRT;
+
+        var hlg = carContentGO.AddComponent<HorizontalLayoutGroup>();
+        hlg.spacing = 16;
+        hlg.padding = new RectOffset(16, 16, 8, 8);
+        hlg.childAlignment = TextAnchor.MiddleCenter;
+        hlg.childForceExpandWidth = false;
+        hlg.childForceExpandHeight = true;
+
+        var csf = carContentGO.AddComponent<ContentSizeFitter>();
+        csf.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        csf.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+        var carBackBtn = MakeButton(carSelectGO, "CarBackButton", "BACK",
+            new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+        ApplyButtonColor(carBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
+
         // ── Virtual Joystick — floating, responsive layout ─────────────────────
         Sprite circleSpr     = BuildCircleSprite();
         Sprite ringSprite    = BuildJoystickRingSprite();
@@ -1565,6 +1730,15 @@ public static class DeliveryGameSetup
         uiManager.victorySubtitleText    = vicSubtitleTxt;
         uiManager.endlessTitleText       = endlessTitleTxt;
         uiManager.pauseHintText          = pauseHintTxt;
+
+        // Car select screen
+        uiManager.carSelectScreen      = carSelectGO;
+        uiManager.carSelectTitleText   = carSelectTitleTxt;
+        uiManager.coinBalanceText      = carCoinTxt;
+        uiManager.carSelectBackButton  = carBackBtn;
+        uiManager.startCarSelectButton = startCarSelectBtn;
+        uiManager.carSelectContent     = carContentGO.transform;
+        uiManager.hudCoinText          = hudCoinTxt;
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
@@ -1886,6 +2060,41 @@ public static class DeliveryGameSetup
         trt.offsetMax = new Vector2(-8, -4);
 
         return btn;
+    }
+
+    static void EnsureCarDataAssets()
+    {
+        if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+            AssetDatabase.CreateFolder("Assets", "Resources");
+        if (!AssetDatabase.IsValidFolder("Assets/Resources/Cars"))
+            AssetDatabase.CreateFolder("Assets/Resources", "Cars");
+
+        CreateCarAsset("pickup",     "car_pickup",      1.0f, 2.5f, new Vector2(0.42f, 0.85f), 1.0f, 1, 0);
+        CreateCarAsset("sedan",      "car_sedan",       1.15f, 1.8f, new Vector2(0.38f, 0.78f), 0.9f, 0, 100);
+        CreateCarAsset("van",        "car_van",         0.85f, 3.5f, new Vector2(0.50f, 0.95f), 1.15f, 2, 200);
+        CreateCarAsset("motorbike",  "car_motorbike",   1.4f, 1.0f, new Vector2(0.25f, 0.55f), 0.7f, 0, 300);
+        CreateCarAsset("sports_car", "car_sports_car",  1.6f, 1.2f, new Vector2(0.35f, 0.70f), 0.85f, 0, 500);
+    }
+
+    static void CreateCarAsset(string carId, string locKey, float speed, float durability,
+                                Vector2 colSize, float scale, int hearts, int cost)
+    {
+        string path = $"Assets/Resources/Cars/{carId}.asset";
+        if (AssetDatabase.LoadAssetAtPath<CarData>(path) != null) return;
+
+        var car = ScriptableObject.CreateInstance<CarData>();
+        car.carId = carId;
+        car.localizationKey = locKey;
+        car.speedMultiplier = speed;
+        car.durabilitySeconds = durability;
+        car.colliderSize = colSize;
+        car.spriteScale = scale;
+        car.bonusHearts = hearts;
+        car.unlockCost = cost;
+        car.carSprite = AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/Sprites/Cars/car_player_{carId}.png");
+
+        AssetDatabase.CreateAsset(car, path);
+        AssetDatabase.SaveAssets();
     }
 
     static GameObject MakeFullScreenPanel(GameObject canvasParent, string name, Color bgColor)
