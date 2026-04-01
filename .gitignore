@@ -1,0 +1,82 @@
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+
+# Asset meta data should only be ignored when the corresponding asset is ignored
+!/[Aa]ssets/**/*.meta
+!/[Pp]ackages/**/*.meta
+!/[Pp]roject[Ss]ettings/**/*.meta
+
+# Auto-generated VS/MD/JetBrains files
+ExportedObj/
+.consulo/
+.idea/
+.vscode/
+.vs/
+
+# Visual Studio cache
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Rider
+*.DotSettings.user
+
+# Unity generated files
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Crash reports
+sysinfo.txt
+
+# Unity recordings / captures
+*.mp4
+*.mov
+
+# Addressables / AssetBundles generated
+/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+/[Aa]ssets/StreamingAssets/aa.meta
+/[Aa]ssets/StreamingAssets/aa/*
+
+# DOTS / Entities cache
+/[Aa]ssets/[Ss]treamingAssets/com.unity.entities.cache/
+
+# Android / Gradle
+.gradle/
+.local/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# iOS / Xcode
+DerivedData/
+*.xcworkspace
+*.xcuserdata/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# If using generated localization tables or other generated data, ignore as needed
+# Uncomment only if your workflow generates them automatically:
+# /Assets/LocalizationData/Generated/
