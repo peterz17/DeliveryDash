@@ -414,6 +414,33 @@ public static class DeliveryGameSetup
                     if (uiManager.endlessDeliveriesText == null)  uiManager.endlessDeliveriesText  = RewireComp<TextMeshProUGUI>("EndlessSummaryScreen/EndlessDelivText");
                     if (uiManager.languageButtonText == null)     uiManager.languageButtonText     = RewireComp<TextMeshProUGUI>("SettingsScreen/SettingsPanel/LanguageButton/Text");
 
+                    // Always re-apply button colors (non-destructive update)
+                    Color cyanN = new Color(0f, 0.75f, 0.85f), cyanH = new Color(0f, 0.90f, 1f), cyanP = new Color(0f, 0.55f, 0.65f);
+                    Color darkN = new Color(0.22f, 0.25f, 0.35f), darkH = new Color(0.32f, 0.38f, 0.52f), darkP = new Color(0.14f, 0.16f, 0.24f);
+                    Color redN  = new Color(0.85f, 0.22f, 0.15f), redH  = new Color(1f, 0.35f, 0.25f), redP  = new Color(0.65f, 0.12f, 0.08f);
+                    Color greenN = new Color(0.12f, 0.65f, 0.32f), greenH = new Color(0.18f, 0.80f, 0.42f), greenP = new Color(0.08f, 0.48f, 0.22f);
+                    Color orangeN = new Color(0.75f, 0.35f, 0.12f), orangeH = new Color(0.90f, 0.45f, 0.18f), orangeP = new Color(0.55f, 0.25f, 0.08f);
+
+                    if (uiManager.startButton != null)              ApplyButtonColor(uiManager.startButton, cyanN, cyanH, cyanP);
+                    if (uiManager.startSettingsButton != null)      ApplyButtonColor(uiManager.startSettingsButton, darkN, darkH, darkP);
+                    if (uiManager.retryButton != null)              ApplyButtonColor(uiManager.retryButton, redN, redH, redP);
+                    if (uiManager.nextLevelButton != null)          ApplyButtonColor(uiManager.nextLevelButton, greenN, greenH, greenP);
+                    if (uiManager.playAgainButton != null)          ApplyButtonColor(uiManager.playAgainButton, cyanN, cyanH, cyanP);
+                    if (uiManager.resumeButton != null)             ApplyButtonColor(uiManager.resumeButton, greenN, greenH, greenP);
+                    if (uiManager.restartButton != null)            ApplyButtonColor(uiManager.restartButton, redN, redH, redP);
+                    if (uiManager.settingsButton != null)           ApplyButtonColor(uiManager.settingsButton, darkN, darkH, darkP);
+                    if (uiManager.selectModeFromPauseButton != null) ApplyButtonColor(uiManager.selectModeFromPauseButton, cyanN, cyanH, cyanP);
+                    if (uiManager.rushModeButton != null)           ApplyButtonColor(uiManager.rushModeButton, cyanN, cyanH, cyanP);
+                    if (uiManager.normalModeButton != null)         ApplyButtonColor(uiManager.normalModeButton, cyanN, cyanH, cyanP);
+                    if (uiManager.endlessModeButton != null)        ApplyButtonColor(uiManager.endlessModeButton, cyanN, cyanH, cyanP);
+                    if (uiManager.heartExtremeModeButton != null)   ApplyButtonColor(uiManager.heartExtremeModeButton, orangeN, orangeH, orangeP);
+                    if (uiManager.rushExtremeModeButton != null)    ApplyButtonColor(uiManager.rushExtremeModeButton, orangeN, orangeH, orangeP);
+                    if (uiManager.modeBackToStartButton != null)    ApplyButtonColor(uiManager.modeBackToStartButton, darkN, darkH, darkP);
+                    if (uiManager.endlessRetryButton != null)       ApplyButtonColor(uiManager.endlessRetryButton, redN, redH, redP);
+                    if (uiManager.endlessSelectModeButton != null)  ApplyButtonColor(uiManager.endlessSelectModeButton, cyanN, cyanH, cyanP);
+                    if (uiManager.languageButton != null)           ApplyButtonColor(uiManager.languageButton, cyanN, cyanH, cyanP);
+                    if (uiManager.closeSettingsButton != null)      ApplyButtonColor(uiManager.closeSettingsButton, darkN, darkH, darkP);
+
                     EditorUtility.SetDirty(uiManager);
                 }
 
@@ -1530,11 +1557,12 @@ public static class DeliveryGameSetup
 
     static void ApplyButtonColor(Button btn, Color normal, Color highlighted, Color pressed)
     {
-        btn.GetComponent<UnityEngine.UI.Image>().color = normal;
+        btn.GetComponent<UnityEngine.UI.Image>().color = Color.white;
         var colors = btn.colors;
         colors.normalColor      = normal;
         colors.highlightedColor = highlighted;
         colors.pressedColor     = pressed;
+        colors.fadeDuration     = 0.12f;
         btn.colors = colors;
     }
 
@@ -1810,13 +1838,14 @@ public static class DeliveryGameSetup
         go.transform.SetParent(parent.transform, false);
 
         var img = go.AddComponent<Image>();
-        img.color = new Color(0.2f, 0.6f, 1f);
+        img.color = Color.white;
 
         var btn = go.AddComponent<Button>();
         var cb  = btn.colors;
         cb.normalColor      = new Color(0.2f, 0.6f, 1f);
         cb.highlightedColor = new Color(0.3f, 0.75f, 1f);
         cb.pressedColor     = new Color(0.1f, 0.45f, 0.85f);
+        cb.fadeDuration     = 0.12f;
         btn.colors = cb;
 
         var rt = go.GetComponent<RectTransform>();
