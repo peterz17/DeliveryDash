@@ -392,7 +392,7 @@ public static class DeliveryGameSetup
                             if (contentT != null)
                             {
                                 var backBtn2 = MakeButton(contentT.gameObject, "BackToStartButton", "BACK",
-                                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -390));
+                                    new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 62), new Vector2(0, -390));
                                 ApplyButtonColor(backBtn2, Color.white, Color.white, Color.white);
                                 uiManager.modeBackToStartButton = backBtn2;
                             }
@@ -1045,11 +1045,11 @@ public static class DeliveryGameSetup
         reqTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         var startBtn = MakeButton(startGO, "StartButton", "START GAME",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(280, 72), new Vector2(0, -90));
+            new Vector2(0.30f, 0.28f), new Vector2(0.70f, 0.36f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(startBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
         var startSettingsBtn = MakeButton(startGO, "StartSettingsButton", "\u2699 Settings",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(180, 52), new Vector2(0, -172));
+            new Vector2(0.35f, 0.18f), new Vector2(0.65f, 0.25f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(startSettingsBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // ── Level Fail Screen ─────────────────────────────────────────────────
@@ -1329,7 +1329,7 @@ public static class DeliveryGameSetup
 
         // Heart Mode
         var normalBtn = MakeButton(contentGO, "NormalModeButton", "\u2665  HEART MODE",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440, 68), new Vector2(0, 300));
+            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, 300));
         ApplyButtonColor(normalBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var normalDescTxt = MakeTMP(contentGO, "NormalDesc", "More hearts as you progress!", 18, TextAlignmentOptions.Center,
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, 256));
@@ -1337,7 +1337,7 @@ public static class DeliveryGameSetup
 
         // Rush Mode
         var rushBtn = MakeButton(contentGO, "RushModeButton", "\u26a1  RUSH MODE",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440, 68), new Vector2(0, 195));
+            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, 195));
         ApplyButtonColor(rushBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var rushDescTxt = MakeTMP(contentGO, "RushDesc", "Hit target to advance! Crash = lose time", 18, TextAlignmentOptions.Center,
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, 151));
@@ -1360,7 +1360,7 @@ public static class DeliveryGameSetup
 
         // Heart Extreme
         var heartExtremeBtn = MakeButton(contentGO, "HeartExtremeModeButton", "\u2665  HEART EXTREME",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440, 68), new Vector2(0, -5));
+            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, -5));
         ApplyButtonColor(heartExtremeBtn, new Color(0.75f, 0.35f, 0.12f), new Color(0.90f, 0.45f, 0.18f), new Color(0.55f, 0.25f, 0.08f));
         var heartExtremeDescTxt = MakeTMP(contentGO, "HeartExtremeDesc", "Heart Mode + 50% faster traffic!", 18, TextAlignmentOptions.Center,
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, -49));
@@ -1368,7 +1368,7 @@ public static class DeliveryGameSetup
 
         // Rush Extreme
         var rushExtremeBtn = MakeButton(contentGO, "RushExtremeModeButton", "\u26a1  RUSH EXTREME",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440, 68), new Vector2(0, -110));
+            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, -110));
         ApplyButtonColor(rushExtremeBtn, new Color(0.75f, 0.35f, 0.12f), new Color(0.90f, 0.45f, 0.18f), new Color(0.55f, 0.25f, 0.08f));
         var rushExtremeDescTxt = MakeTMP(contentGO, "RushExtremeDesc", "Rush Mode + 50% faster traffic!", 18, TextAlignmentOptions.Center,
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, -154));
@@ -1385,15 +1385,15 @@ public static class DeliveryGameSetup
         sepBotRt.sizeDelta = new Vector2(0, 2); sepBotRt.anchoredPosition = new Vector2(0, -205);
 
         var endlessBtn = MakeButton(contentGO, "EndlessModeButton", "\u221e  ENDLESS",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(440, 68), new Vector2(0, -265));
+            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, -265));
         ApplyButtonColor(endlessBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var endlessDescTxt = MakeTMP(contentGO, "EndlessDesc", "Survive as long as you can!", 18, TextAlignmentOptions.Center,
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, -309));
         endlessDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
-        // Back to Start button (inside ModeContent, same size as mode buttons)
+        // Back to Start button (inside ModeContent, same proportional width as mode buttons)
         var modeBackBtn = MakeButton(contentGO, "BackToStartButton", "BACK",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -390));
+            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 62), new Vector2(0, -390));
         ApplyButtonColor(modeBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // ── Endless Summary Screen ────────────────────────────────────────────

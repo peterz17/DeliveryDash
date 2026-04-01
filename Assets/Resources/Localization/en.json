@@ -33,7 +33,7 @@
     { "key": "hud_carry_pkg",      "value": "Carrying: Package" },
     { "key": "hud_carry_none",     "value": "Carrying: Nothing" },
     { "key": "hud_deliver_to",     "value": "Deliver to:" },
-    { "key": "hud_rush_label",     "value": "\u26a1 RUSH!" },
+    { "key": "hud_rush_label",     "value": "RUSH!" },
     { "key": "dest_pickup",        "value": "PICKUP" },
     { "key": "dest_house_a",       "value": "House A" },
     { "key": "dest_house_b",       "value": "House B" },
