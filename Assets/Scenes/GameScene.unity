@@ -12100,8 +12100,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: ac708545249d54418bc8a787d3b8d449, type: 3}
   - {fileID: 21300000, guid: 60b9086f952c848a88379b7802f62cb7, type: 3}
   carCatalog:
-  - {fileID: 11400000, guid: 5bafdccf9e5d9479fb5107803fa243ca, type: 2}
   - {fileID: 11400000, guid: 00e838627cee5409ca77063fb7831deb, type: 2}
+  - {fileID: 11400000, guid: 5bafdccf9e5d9479fb5107803fa243ca, type: 2}
   - {fileID: 11400000, guid: d6953c4e4c5ef4b0cbf8146d013d0978, type: 2}
   - {fileID: 11400000, guid: d5b06536d1ae343ffaddad99b75abb58, type: 2}
   - {fileID: 11400000, guid: 8f07d84014ef7489f867c3d9e4ca54f6, type: 2}
@@ -14267,13 +14267,13 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.75018317, y: 0.75018317}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 0.75018317, y: 0.75018317}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.75018317, y: 0.75018317}
+  m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
 --- !u!212 &628981352
 SpriteRenderer:
@@ -20509,7 +20509,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 0.359375}
+    oldSize: {x: 1, y: 0.6660156}
     newSize: {x: 1, y: 0.359375}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -26518,13 +26518,13 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.75018317, y: 0.75018317}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 0.75018317, y: 0.75018317}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.75018317, y: 0.75018317}
+  m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
 --- !u!212 &1192599851
 SpriteRenderer:
@@ -26747,13 +26747,13 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.75018317, y: 0.75018317}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 0.75018317, y: 0.75018317}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.75018317, y: 0.75018317}
+  m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
 --- !u!212 &1199397608
 SpriteRenderer:
@@ -35213,7 +35213,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 0.51953125}
+    oldSize: {x: 1, y: 0.6660156}
     newSize: {x: 1, y: 0.51953125}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -36219,13 +36219,13 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.75018317, y: 0.75018317}
+    oldSize: {x: 1, y: 1}
     newSize: {x: 0.75018317, y: 0.75018317}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.75018317, y: 0.75018317}
+  m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
 --- !u!212 &1435312358
 SpriteRenderer:
@@ -38420,7 +38420,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 0.37304688}
+    oldSize: {x: 1, y: 0.6660156}
     newSize: {x: 1, y: 0.37304688}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -43536,7 +43536,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 0.51953125}
+    oldSize: {x: 1, y: 0.6660156}
     newSize: {x: 1, y: 0.51953125}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
@@ -45854,7 +45854,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalScale: {x: 2.8, y: 2.8, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5836918}
@@ -45910,13 +45910,13 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 0.6666667}
+    oldSize: {x: 1, y: 0.6660156}
     newSize: {x: 1, y: 0.6666667}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.95, y: 0.95}
+  m_Size: {x: 0.95, y: 0.8}
   m_EdgeRadius: 0
 --- !u!212 &1927355289
 SpriteRenderer:

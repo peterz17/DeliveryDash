@@ -98,8 +98,8 @@ public static class DeliveryGameSetup
             buildingCafeSpr  != null ? buildingCafeSpr  : buildingFallback,
         };
         Sprite buildingSpr = buildingFallback;
-        ConfigureSpriteImport("Assets/Sprites/Building/building_office.png", 1536f, FilterMode.Bilinear);
-        ConfigureSpriteImport("Assets/Sprites/Building/building_normal.png", 1365f, FilterMode.Bilinear);
+        ConfigureSpriteImport("Assets/Sprites/Building/building_office.png", 512f, FilterMode.Bilinear);
+        ConfigureSpriteImport("Assets/Sprites/Building/building_normal.png", 512f, FilterMode.Bilinear);
         Sprite packageSpr  = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Building/building_office.png");
         if (packageSpr == null) packageSpr = BuildPackageSprite();
         Sprite obstacleSpr = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Building/building_normal.png");
@@ -126,6 +126,29 @@ public static class DeliveryGameSetup
             CreateWall("WallBot",   new Vector3(0,          -MapH * 0.5f - WT * 0.5f, 0), new Vector2(MapW + WT * 2, WT), obst);
             CreateWall("WallLeft",  new Vector3(-MapW * 0.5f - WT * 0.5f, 0,          0), new Vector2(WT, MapH + WT * 2), obst);
             CreateWall("WallRight", new Vector3( MapW * 0.5f + WT * 0.5f, 0,          0), new Vector2(WT, MapH + WT * 2), obst);
+        }
+        else
+        {
+            var existingObst = FindRoot("--- Obstacles ---");
+            string[] blockNames = { "Block NW", "Block NE", "Block SW", "Block SE" };
+            foreach (var bName in blockNames)
+            {
+                var blockT = existingObst.transform.Find(bName);
+                if (blockT == null) continue;
+                var sr = blockT.GetComponent<SpriteRenderer>();
+                if (sr != null)
+                {
+                    sr.sprite = obstacleSpr;
+                    sr.color  = Color.white;
+                }
+                blockT.localScale = new Vector3(2f, 2f, 1f);
+                var col = blockT.GetComponent<BoxCollider2D>();
+                if (col != null)
+                {
+                    var bounds = sr != null && sr.sprite != null ? (Vector2)sr.sprite.bounds.size : Vector2.one;
+                    col.size = new Vector2(bounds.x, 0.8f);
+                }
+            }
         }
 
         // ── Decorations ──────────────────────────────────────────────────────
@@ -184,10 +207,17 @@ public static class DeliveryGameSetup
                     localizer.localizationKey = DeliveryLabelKeys[i];
                 }
             }
-            // Pickup zone label
+            // Pickup zone sprite + label
             var pickupT = existingZones.transform.Find("Pickup Zone");
             if (pickupT != null)
             {
+                var sr = pickupT.GetComponent<SpriteRenderer>();
+                if (sr != null)
+                {
+                    sr.sprite = packageSpr;
+                    sr.color  = Color.white;
+                }
+                pickupT.localScale = new Vector3(PickupSize, PickupSize, 1f);
                 var labelT = pickupT.Find("Label");
                 if (labelT != null)
                 {
@@ -1776,8 +1806,8 @@ public static class DeliveryGameSetup
         var sr = go.GetComponent<SpriteRenderer>();
         var col = go.AddComponent<BoxCollider2D>();
         col.isTrigger = false;
-        // Match collider to actual sprite bounds (local space) so it fits the visual exactly
-        col.size = sr.sprite != null ? (Vector2)sr.sprite.bounds.size : Vector2.one;
+        var bounds = sr.sprite != null ? (Vector2)sr.sprite.bounds.size : Vector2.one;
+        col.size = new Vector2(bounds.x, 0.8f);
     }
 
     static void CreateWall(string name, Vector3 pos, Vector2 size, Transform parent = null)
@@ -1859,7 +1889,7 @@ public static class DeliveryGameSetup
         var go = CreateSprite(name, pos, size, color, sprite, order: 0, parent: parent);
         var col = go.AddComponent<BoxCollider2D>();
         col.isTrigger = true;
-        col.size = Vector2.one * 0.95f;
+        col.size = new Vector2(0.95f, 0.8f);
         return go;
     }
 
