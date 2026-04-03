@@ -345,7 +345,7 @@ public static class DeliveryGameSetup
                 if (uiManager.pauseTitleText         == null) uiManager.pauseTitleText         = FindTMP<TextMeshProUGUI>("PauseScreen/PauseTitle");
                 if (uiManager.modeSelectTitleText    == null) uiManager.modeSelectTitleText    = FindTMP<TextMeshProUGUI>("ModeSelectScreen/ModeContent/ModeTitle");
                 if (uiManager.rushModeDescText       == null) uiManager.rushModeDescText       = FindTMP<TextMeshProUGUI>("ModeSelectScreen/ModeContent/RushDesc");
-                if (uiManager.normalModeDescText     == null) uiManager.normalModeDescText     = FindTMP<TextMeshProUGUI>("ModeSelectScreen/ModeContent/NormalDesc");
+                if (uiManager.heartModeDescText     == null) uiManager.heartModeDescText     = FindTMP<TextMeshProUGUI>("ModeSelectScreen/ModeContent/HeartDesc");
                 if (uiManager.endlessModeDescText    == null) uiManager.endlessModeDescText    = FindTMP<TextMeshProUGUI>("ModeSelectScreen/ModeContent/EndlessDesc");
                 if (uiManager.standardHeaderText     == null) uiManager.standardHeaderText     = FindTMP<TextMeshProUGUI>("ModeSelectScreen/ModeContent/StandardHeader");
                 if (uiManager.extremeHeaderText      == null) uiManager.extremeHeaderText      = FindTMP<TextMeshProUGUI>("ModeSelectScreen/ModeContent/ExtremeHeader");
@@ -361,7 +361,7 @@ public static class DeliveryGameSetup
                         if (modeSelGO != null) uiManager.modeSelectScreen = modeSelGO.gameObject;
                     }
                 }
-                if (uiManager.normalModeButton       == null) uiManager.normalModeButton       = FindTMP<Button>("ModeSelectScreen/ModeContent/NormalModeButton");
+                if (uiManager.heartModeButton       == null) uiManager.heartModeButton       = FindTMP<Button>("ModeSelectScreen/ModeContent/HeartModeButton");
                 if (uiManager.rushModeButton          == null) uiManager.rushModeButton          = FindTMP<Button>("ModeSelectScreen/ModeContent/RushModeButton");
                 if (uiManager.endlessModeButton       == null) uiManager.endlessModeButton       = FindTMP<Button>("ModeSelectScreen/ModeContent/EndlessModeButton");
                 if (uiManager.heartExtremeModeButton  == null) uiManager.heartExtremeModeButton  = FindTMP<Button>("ModeSelectScreen/ModeContent/HeartExtremeModeButton");
@@ -405,6 +405,124 @@ public static class DeliveryGameSetup
                     RewireGO(ref uiManager.pauseScreen,          "PauseScreen");
                     RewireGO(ref uiManager.settingsScreen,       "SettingsScreen");
                     RewireGO(ref uiManager.carSelectScreen,      "CarSelectScreen");
+                    RewireGO(ref uiManager.leaderboardScreen,    "LeaderboardScreen");
+
+                    // Build LeaderboardScreen if missing
+                    if (uiManager.leaderboardScreen == null)
+                    {
+                        var lbGO2 = MakeFullScreenPanel(canvasT2.gameObject, "LeaderboardScreen", new Color(0.05f, 0.06f, 0.13f, 0.95f));
+                        lbGO2.SetActive(false);
+                        uiManager.leaderboardScreen = lbGO2;
+
+                        var lbTitle2 = MakeTMP(lbGO2, "LeaderboardTitle", "LEADERBOARD", 52, TextAlignmentOptions.Center,
+                            new Vector2(0.10f, 0.88f), new Vector2(0.90f, 0.97f), Vector2.zero, Vector2.zero);
+                        lbTitle2.color = new Color(0.85f, 0.65f, 0.20f);
+                        uiManager.leaderboardTitleText = lbTitle2;
+
+                        string[] tabNames2 = { "Heart", "Rush", "Endless", "Heart EX", "Rush EX" };
+                        string[] tabObjs2 = { "TabHeart", "TabRush", "TabEndless", "TabHeartEx", "TabRushEx" };
+                        var tabs2 = new Button[5];
+                        for (int ti = 0; ti < 5; ti++)
+                        {
+                            float x0 = 0.04f + ti * 0.184f;
+                            float x1 = x0 + 0.174f;
+                            tabs2[ti] = MakeButton(lbGO2, tabObjs2[ti], tabNames2[ti],
+                                new Vector2(x0, 0.80f), new Vector2(x1, 0.87f), Vector2.zero, Vector2.zero);
+                            ApplyButtonColor(tabs2[ti], new Color(0.18f, 0.20f, 0.30f), new Color(0.28f, 0.32f, 0.45f), new Color(0.12f, 0.14f, 0.22f));
+                        }
+                        uiManager.leaderboardModeTabs = tabs2;
+
+                        var lbScroll2 = new GameObject("LeaderboardScroll", typeof(RectTransform));
+                        lbScroll2.transform.SetParent(lbGO2.transform, false);
+                        var lbScRT2 = lbScroll2.GetComponent<RectTransform>();
+                        lbScRT2.anchorMin = new Vector2(0.03f, 0.14f);
+                        lbScRT2.anchorMax = new Vector2(0.97f, 0.79f);
+                        lbScRT2.offsetMin = lbScRT2.offsetMax = Vector2.zero;
+                        var lbSR2 = lbScroll2.AddComponent<ScrollRect>();
+                        lbSR2.horizontal = false; lbSR2.vertical = true;
+                        lbScroll2.AddComponent<Mask>().showMaskGraphic = false;
+                        lbScroll2.AddComponent<Image>().color = new Color(0, 0, 0, 0.01f);
+
+                        var lbCont2 = new GameObject("Content", typeof(RectTransform));
+                        lbCont2.transform.SetParent(lbScroll2.transform, false);
+                        var lbContRT2 = lbCont2.GetComponent<RectTransform>();
+                        lbContRT2.anchorMin = new Vector2(0f, 1f);
+                        lbContRT2.anchorMax = new Vector2(1f, 1f);
+                        lbContRT2.pivot = new Vector2(0.5f, 1f);
+                        lbContRT2.offsetMin = lbContRT2.offsetMax = Vector2.zero;
+                        lbSR2.content = lbContRT2;
+                        var vlg2 = lbCont2.AddComponent<VerticalLayoutGroup>();
+                        vlg2.spacing = 4; vlg2.padding = new RectOffset(4, 4, 4, 4);
+                        vlg2.childAlignment = TextAnchor.UpperCenter;
+                        vlg2.childForceExpandWidth = true; vlg2.childForceExpandHeight = false;
+                        var csf2 = lbCont2.AddComponent<ContentSizeFitter>();
+                        csf2.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+                        csf2.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+                        uiManager.leaderboardContent = lbCont2.transform;
+
+                        var lbBack2 = MakeButton(lbGO2, "LeaderboardBackButton", "BACK",
+                            new Vector2(0.30f, 0.03f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+                        ApplyButtonColor(lbBack2, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
+                        uiManager.leaderboardBackButton = lbBack2;
+                    }
+                    else
+                    {
+                        if (uiManager.leaderboardBackButton == null)  uiManager.leaderboardBackButton  = RewireComp<Button>("LeaderboardScreen/LeaderboardBackButton");
+                        if (uiManager.leaderboardTitleText == null)   uiManager.leaderboardTitleText   = RewireComp<TextMeshProUGUI>("LeaderboardScreen/LeaderboardTitle");
+                        if (uiManager.leaderboardContent == null)     { var t = canvasT2.Find("LeaderboardScreen/LeaderboardScroll/Content"); if (t != null) uiManager.leaderboardContent = t; }
+                        if (uiManager.leaderboardModeTabs == null || uiManager.leaderboardModeTabs.Length == 0)
+                        {
+                            string[] tabPaths = { "TabHeart", "TabRush", "TabEndless", "TabHeartEx", "TabRushEx" };
+                            var tabs = new Button[5];
+                            bool anyFound = false;
+                            for (int ti = 0; ti < tabPaths.Length; ti++) { tabs[ti] = RewireComp<Button>("LeaderboardScreen/" + tabPaths[ti]); if (tabs[ti] != null) anyFound = true; }
+                            if (anyFound) uiManager.leaderboardModeTabs = tabs;
+                        }
+                    }
+
+                    // Remove stale ModeLeaderboardButton if exists
+                    {
+                        var contentT = canvasT2.Find("ModeSelectScreen/ModeContent");
+                        if (contentT != null)
+                        {
+                            var stale = contentT.Find("ModeLeaderboardButton");
+                            if (stale != null) Object.DestroyImmediate(stale.gameObject);
+                        }
+                    }
+                    // Leaderboard buttons on end-game screens — rewire only, no creation
+                    // These buttons are created manually via MCP or in the scene editor, not by Setup Scene
+                    if (uiManager.gameOverLeaderboardButton == null)
+                        uiManager.gameOverLeaderboardButton = RewireComp<Button>("GameOverScreen/LeaderboardButton");
+                    if (uiManager.levelCompleteLeaderboardButton == null)
+                        uiManager.levelCompleteLeaderboardButton = RewireComp<Button>("LevelCompleteScreen/LeaderboardButton");
+                    if (uiManager.victoryLeaderboardButton == null)
+                        uiManager.victoryLeaderboardButton = RewireComp<Button>("VictoryScreen/LeaderboardButton");
+                    if (uiManager.endlessLeaderboardButton == null)
+                        uiManager.endlessLeaderboardButton = RewireComp<Button>("EndlessSummaryScreen/EndlessLeaderboardButton");
+
+                    // Build Start Leaderboard button if missing — duplicate existing button
+                    if (uiManager.startLeaderboardButton == null)
+                    {
+                        uiManager.startLeaderboardButton = RewireComp<Button>("StartScreen/StartLeaderboardButton");
+                        if (uiManager.startLeaderboardButton == null && uiManager.startSettingsButton != null)
+                        {
+                            var dupGO = Object.Instantiate(uiManager.startSettingsButton.gameObject, uiManager.startScreen.transform);
+                            dupGO.name = "StartLeaderboardButton";
+                            ((RectTransform)dupGO.transform).anchoredPosition = new Vector2(0, -336);
+                            dupGO.GetComponentInChildren<TextMeshProUGUI>().text = "Leaderboard";
+                            uiManager.startLeaderboardButton = dupGO.GetComponent<Button>();
+                        }
+                    }
+
+                    // PlayerNameInput lives in LoginScreen, not StartScreen
+                    if (uiManager.playerNameInput == null)
+                        uiManager.playerNameInput = RewireComp<TMP_InputField>("LoginScreen/PlayerNameInput");
+                    // Remove stale PlayerNameInput from StartScreen if it exists
+                    if (uiManager.startScreen != null)
+                    {
+                        var staleNI = uiManager.startScreen.transform.Find("PlayerNameInput");
+                        if (staleNI != null) Object.DestroyImmediate(staleNI.gameObject);
+                    }
 
                     // Car select refs
                     if (uiManager.carSelectBackButton == null)   uiManager.carSelectBackButton  = RewireComp<Button>("CarSelectScreen/CarBackButton");
@@ -509,14 +627,14 @@ public static class DeliveryGameSetup
                             if (contentT != null)
                             {
                                 var backBtn2 = MakeButton(contentT.gameObject, "BackToStartButton", "BACK",
-                                    new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 62), new Vector2(0, -390));
+                                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -507));
                                 ApplyButtonColor(backBtn2, Color.white, Color.white, Color.white);
                                 uiManager.modeBackToStartButton = backBtn2;
                             }
                         }
                     }
                     if (uiManager.rushModeButton == null)         uiManager.rushModeButton         = RewireComp<Button>("ModeSelectScreen/ModeContent/RushModeButton");
-                    if (uiManager.normalModeButton == null)       uiManager.normalModeButton       = RewireComp<Button>("ModeSelectScreen/ModeContent/NormalModeButton");
+                    if (uiManager.heartModeButton == null)       uiManager.heartModeButton       = RewireComp<Button>("ModeSelectScreen/ModeContent/HeartModeButton");
                     if (uiManager.endlessModeButton == null)      uiManager.endlessModeButton      = RewireComp<Button>("ModeSelectScreen/ModeContent/EndlessModeButton");
                     if (uiManager.heartExtremeModeButton == null) uiManager.heartExtremeModeButton = RewireComp<Button>("ModeSelectScreen/ModeContent/HeartExtremeModeButton");
                     if (uiManager.rushExtremeModeButton == null)  uiManager.rushExtremeModeButton  = RewireComp<Button>("ModeSelectScreen/ModeContent/RushExtremeModeButton");
@@ -550,7 +668,7 @@ public static class DeliveryGameSetup
                     if (uiManager.settingsButton != null)           ApplyButtonColor(uiManager.settingsButton, darkN, darkH, darkP);
                     if (uiManager.selectModeFromPauseButton != null) ApplyButtonColor(uiManager.selectModeFromPauseButton, cyanN, cyanH, cyanP);
                     if (uiManager.rushModeButton != null)           ApplyButtonColor(uiManager.rushModeButton, cyanN, cyanH, cyanP);
-                    if (uiManager.normalModeButton != null)         ApplyButtonColor(uiManager.normalModeButton, cyanN, cyanH, cyanP);
+                    if (uiManager.heartModeButton != null)         ApplyButtonColor(uiManager.heartModeButton, cyanN, cyanH, cyanP);
                     if (uiManager.endlessModeButton != null)        ApplyButtonColor(uiManager.endlessModeButton, cyanN, cyanH, cyanP);
                     if (uiManager.heartExtremeModeButton != null)   ApplyButtonColor(uiManager.heartExtremeModeButton, orangeN, orangeH, orangeP);
                     if (uiManager.rushExtremeModeButton != null)    ApplyButtonColor(uiManager.rushExtremeModeButton, orangeN, orangeH, orangeP);
@@ -804,14 +922,14 @@ public static class DeliveryGameSetup
                 ApplyAnchors("SepBot", new Vector2(0.20f, 0.265f), new Vector2(0.80f, 0.267f));
 
                 // Buttons
-                ApplyBtnLayout("NormalModeButton", 0.77f);
+                ApplyBtnLayout("HeartModeButton", 0.77f);
                 ApplyBtnLayout("RushModeButton", 0.65f);
                 ApplyBtnLayout("HeartExtremeModeButton", 0.47f);
                 ApplyBtnLayout("RushExtremeModeButton", 0.35f);
                 ApplyBtnLayout("EndlessModeButton", 0.19f);
 
                 // Descriptions
-                ApplyDescLayout("NormalDesc", 0.77f);
+                ApplyDescLayout("HeartDesc", 0.77f);
                 ApplyDescLayout("RushDesc", 0.65f);
                 ApplyDescLayout("HeartExtremeDesc", 0.47f);
                 ApplyDescLayout("RushExtremeDesc", 0.35f);
@@ -836,6 +954,10 @@ public static class DeliveryGameSetup
         // ── LocalizationManager ──────────────────────────────────────────────
         if (FindRoot("LocalizationManager") == null)
             new GameObject("LocalizationManager").AddComponent<LocalizationManager>();
+
+        // ── LeaderboardManager ──────────────────────────────────────────────
+        if (FindRoot("LeaderboardManager") == null)
+            new GameObject("LeaderboardManager").AddComponent<LeaderboardManager>();
 
         // ── FontLocalizationManager ───────────────────────────────────────────
         if (FindRoot("FontLocalizationManager") == null)
@@ -1208,6 +1330,15 @@ public static class DeliveryGameSetup
             new Vector2(0.35f, 0.18f), new Vector2(0.65f, 0.25f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(startSettingsBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
+        // Leaderboard button — duplicate settings button, change text + position
+        var startLbBtnGO = Object.Instantiate(startSettingsBtn.gameObject, startGO.transform);
+        startLbBtnGO.name = "StartLeaderboardButton";
+        ((RectTransform)startLbBtnGO.transform).anchoredPosition = new Vector2(0, -336);
+        var startLbBtn = startLbBtnGO.GetComponent<Button>();
+        startLbBtnGO.GetComponentInChildren<TextMeshProUGUI>().text = "Leaderboard";
+
+        // PlayerNameInput is in LoginScreen, not StartScreen
+
         // ── Level Fail Screen ─────────────────────────────────────────────────
         var gameOverGO = MakeFullScreenPanel(canvasGO, "GameOverScreen", new Color(0.08f, 0.05f, 0.12f, 0.93f));
         gameOverGO.SetActive(false);
@@ -1227,6 +1358,7 @@ public static class DeliveryGameSetup
         var retryBtn = MakeButton(gameOverGO, "RetryButton", "TRY AGAIN",
             new Vector2(0.25f, 0.10f), new Vector2(0.75f, 0.20f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(retryBtn, new Color(0.85f, 0.22f, 0.15f), new Color(1f, 0.35f, 0.25f), new Color(0.65f, 0.12f, 0.08f));
+        // Leaderboard button — duplicated from retry at runtime via else-branch
 
         // ── Level Complete Screen ─────────────────────────────────────────────
         var levelCompleteGO = MakeFullScreenPanel(canvasGO, "LevelCompleteScreen", new Color(0.05f, 0.08f, 0.12f, 0.93f));
@@ -1484,12 +1616,12 @@ public static class DeliveryGameSetup
         sepTopRt.sizeDelta = new Vector2(0, 2); sepTopRt.anchoredPosition = new Vector2(0, 398);
 
         // Heart Mode
-        var normalBtn = MakeButton(contentGO, "NormalModeButton", "\u2665  HEART MODE",
+        var heartBtn = MakeButton(contentGO, "HeartModeButton", "\u2665  HEART MODE",
             new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, 300));
-        ApplyButtonColor(normalBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
-        var normalDescTxt = MakeTMP(contentGO, "NormalDesc", "More hearts as you progress!", 18, TextAlignmentOptions.Center,
+        ApplyButtonColor(heartBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
+        var heartDescTxt = MakeTMP(contentGO, "HeartDesc", "More hearts as you progress!", 18, TextAlignmentOptions.Center,
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, 256));
-        normalDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
+        heartDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         // Rush Mode
         var rushBtn = MakeButton(contentGO, "RushModeButton", "\u26a1  RUSH MODE",
@@ -1549,9 +1681,10 @@ public static class DeliveryGameSetup
 
         // Back to Start button (inside ModeContent, same proportional width as mode buttons)
         var modeBackBtn = MakeButton(contentGO, "BackToStartButton", "BACK",
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 62), new Vector2(0, -390));
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -507));
         ApplyButtonColor(modeBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
+        // Leaderboard button — duplicate back button, change text + position
         // ── Endless Summary Screen ────────────────────────────────────────────
         var endlessSummaryGO = MakeFullScreenPanel(canvasGO, "EndlessSummaryScreen", new Color(0.05f, 0.06f, 0.13f, 0.94f));
         endlessSummaryGO.SetActive(false);
@@ -1630,6 +1763,66 @@ public static class DeliveryGameSetup
         var carBackBtn = MakeButton(carSelectGO, "CarBackButton", "BACK",
             new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(carBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
+
+        // ── Leaderboard Screen ──────────────────────────────────────────────
+        var leaderboardGO = MakeFullScreenPanel(canvasGO, "LeaderboardScreen", new Color(0.05f, 0.06f, 0.13f, 0.95f));
+        leaderboardGO.SetActive(false);
+
+        var lbTitleTxt = MakeTMP(leaderboardGO, "LeaderboardTitle", "LEADERBOARD", 52, TextAlignmentOptions.Center,
+            new Vector2(0.10f, 0.88f), new Vector2(0.90f, 0.97f), Vector2.zero, Vector2.zero);
+        lbTitleTxt.color = new Color(0.85f, 0.65f, 0.20f);
+
+        // Mode tabs
+        string[] lbTabNames = { "Heart", "Rush", "Endless", "Heart EX", "Rush EX" };
+        string[] lbTabObjNames = { "TabHeart", "TabRush", "TabEndless", "TabHeartEx", "TabRushEx" };
+        var lbModeTabs = new Button[5];
+        for (int i = 0; i < 5; i++)
+        {
+            float x0 = 0.04f + i * 0.184f;
+            float x1 = x0 + 0.174f;
+            lbModeTabs[i] = MakeButton(leaderboardGO, lbTabObjNames[i], lbTabNames[i],
+                new Vector2(x0, 0.80f), new Vector2(x1, 0.87f), Vector2.zero, Vector2.zero);
+            ApplyButtonColor(lbModeTabs[i], new Color(0.18f, 0.20f, 0.30f), new Color(0.28f, 0.32f, 0.45f), new Color(0.12f, 0.14f, 0.22f));
+        }
+
+        // Scroll area for leaderboard rows
+        var lbScrollGO = new GameObject("LeaderboardScroll", typeof(RectTransform));
+        lbScrollGO.transform.SetParent(leaderboardGO.transform, false);
+        var lbScrollRT = lbScrollGO.GetComponent<RectTransform>();
+        lbScrollRT.anchorMin = new Vector2(0.03f, 0.14f);
+        lbScrollRT.anchorMax = new Vector2(0.97f, 0.79f);
+        lbScrollRT.offsetMin = lbScrollRT.offsetMax = Vector2.zero;
+        var lbScrollRect = lbScrollGO.AddComponent<ScrollRect>();
+        lbScrollRect.horizontal = false;
+        lbScrollRect.vertical = true;
+        var lbScrollMask = lbScrollGO.AddComponent<Mask>();
+        var lbScrollImg = lbScrollGO.AddComponent<Image>();
+        lbScrollImg.color = new Color(0, 0, 0, 0.01f);
+        lbScrollMask.showMaskGraphic = false;
+
+        var lbContentGO = new GameObject("Content", typeof(RectTransform));
+        lbContentGO.transform.SetParent(lbScrollGO.transform, false);
+        var lbContentRT = lbContentGO.GetComponent<RectTransform>();
+        lbContentRT.anchorMin = new Vector2(0f, 1f);
+        lbContentRT.anchorMax = new Vector2(1f, 1f);
+        lbContentRT.pivot = new Vector2(0.5f, 1f);
+        lbContentRT.offsetMin = lbContentRT.offsetMax = Vector2.zero;
+        lbScrollRect.content = lbContentRT;
+
+        var lbVlg = lbContentGO.AddComponent<VerticalLayoutGroup>();
+        lbVlg.spacing = 4;
+        lbVlg.padding = new RectOffset(4, 4, 4, 4);
+        lbVlg.childAlignment = TextAnchor.UpperCenter;
+        lbVlg.childForceExpandWidth = true;
+        lbVlg.childForceExpandHeight = false;
+
+        var lbCsf = lbContentGO.AddComponent<ContentSizeFitter>();
+        lbCsf.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+        lbCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        var lbBackBtn = MakeButton(leaderboardGO, "LeaderboardBackButton", "BACK",
+            new Vector2(0.30f, 0.03f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+        ApplyButtonColor(lbBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // ── Virtual Joystick — floating, responsive layout ─────────────────────
         Sprite circleSpr     = BuildCircleSprite();
@@ -1712,7 +1905,7 @@ public static class DeliveryGameSetup
         uiManager.modeSelectScreen       = modeSelectGO;
         uiManager.modeBackToStartButton  = modeBackBtn;
         uiManager.rushModeButton         = rushBtn;
-        uiManager.normalModeButton       = normalBtn;
+        uiManager.heartModeButton       = heartBtn;
         uiManager.endlessModeButton      = endlessBtn;
         uiManager.heartExtremeModeButton = heartExtremeBtn;
         uiManager.rushExtremeModeButton  = rushExtremeBtn;
@@ -1745,7 +1938,7 @@ public static class DeliveryGameSetup
         uiManager.volumeLabelText      = volumeLabelTxt;
         uiManager.modeSelectTitleText  = modeSelectTitleTxt;
         uiManager.rushModeDescText     = rushDescTxt;
-        uiManager.normalModeDescText   = normalDescTxt;
+        uiManager.heartModeDescText   = heartDescTxt;
         uiManager.endlessModeDescText  = endlessDescTxt;
         uiManager.heartExtremeDescText = heartExtremeDescTxt;
         uiManager.rushExtremeDescText  = rushExtremeDescTxt;
@@ -1769,6 +1962,18 @@ public static class DeliveryGameSetup
         uiManager.startCarSelectButton = startCarSelectBtn;
         uiManager.carSelectContent     = carContentGO.transform;
         uiManager.hudCoinText          = hudCoinTxt;
+
+        // Leaderboard
+        uiManager.leaderboardScreen    = leaderboardGO;
+        uiManager.leaderboardTitleText = lbTitleTxt;
+        uiManager.leaderboardContent   = lbContentGO.transform;
+        uiManager.leaderboardBackButton = lbBackBtn;
+        uiManager.leaderboardModeTabs  = lbModeTabs;
+        // modeSelectLeaderboardButton removed — leaderboard accessed from StartScreen only
+
+        // Start screen leaderboard
+        uiManager.startLeaderboardButton = startLbBtnGO.GetComponent<Button>();
+        // playerNameInput is wired from LoginScreen in else-branch
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

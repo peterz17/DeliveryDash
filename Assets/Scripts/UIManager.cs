@@ -54,7 +54,7 @@ public class UIManager : MonoBehaviour
 
     [Header("Mode Select Buttons")]
     public Button rushModeButton;
-    public Button normalModeButton;
+    public Button heartModeButton;
     public Button endlessModeButton;
     public Button heartExtremeModeButton;
     public Button rushExtremeModeButton;
@@ -97,13 +97,31 @@ public class UIManager : MonoBehaviour
     public Button startCarSelectButton;
     public Transform carSelectContent;
 
+    [Header("Leaderboard")]
+    public GameObject leaderboardScreen;
+    public TextMeshProUGUI leaderboardTitleText;
+    public Transform leaderboardContent;
+    public Button leaderboardBackButton;
+    public Button[] leaderboardModeTabs;
+    public Button startLeaderboardButton;
+    public Button modeSelectLeaderboardButton;
+    public Button gameOverLeaderboardButton;
+    public Button levelCompleteLeaderboardButton;
+    public Button victoryLeaderboardButton;
+    public Button endlessLeaderboardButton;
+
+    [Header("Login Screen")]
+    public GameObject loginScreen;
+    public TMP_InputField playerNameInput;
+    public Button loginConfirmButton;
+
     [Header("Localizable Static Texts")]
     public TextMeshProUGUI startTitleText;
     public TextMeshProUGUI settingsTitleText;
     public TextMeshProUGUI volumeLabelText;
     public TextMeshProUGUI modeSelectTitleText;
     public TextMeshProUGUI rushModeDescText;
-    public TextMeshProUGUI normalModeDescText;
+    public TextMeshProUGUI heartModeDescText;
     public TextMeshProUGUI endlessModeDescText;
     public TextMeshProUGUI heartExtremeDescText;
     public TextMeshProUGUI rushExtremeDescText;
@@ -157,7 +175,7 @@ public class UIManager : MonoBehaviour
         Bind(selectModeFromPauseButton, () => GM(g => g.ReturnToMainMenu()));
         Bind(playAgainButton,           () => ShowModeSelectScreen());
         Bind(rushModeButton,            () => GM(g => g.StartWithMode(GameMode.Rush)));
-        Bind(normalModeButton,          () => GM(g => g.StartWithMode(GameMode.Normal)));
+        Bind(heartModeButton,          () => GM(g => g.StartWithMode(GameMode.Heart)));
         Bind(endlessModeButton,         () => GM(g => g.StartWithMode(GameMode.Endless)));
         Bind(heartExtremeModeButton,    () => GM(g => g.StartWithMode(GameMode.HeartExtreme)));
         Bind(rushExtremeModeButton,     () => GM(g => g.StartWithMode(GameMode.RushExtreme)));
@@ -166,6 +184,30 @@ public class UIManager : MonoBehaviour
         Bind(modeBackToStartButton,     () => ShowStartScreen());
         Bind(carSelectBackButton,       () => ShowStartScreen());
         Bind(startCarSelectButton,      () => GM(g => g.ShowCarSelect()));
+        Bind(startLeaderboardButton,         () => ShowLeaderboardScreen());
+        Bind(modeSelectLeaderboardButton,    () => ShowLeaderboardScreen());
+        Bind(gameOverLeaderboardButton,      () => ShowLeaderboardScreen());
+        Bind(levelCompleteLeaderboardButton, () => ShowLeaderboardScreen());
+        Bind(victoryLeaderboardButton,       () => ShowLeaderboardScreen());
+        Bind(endlessLeaderboardButton,       () => ShowLeaderboardScreen(GameMode.Endless));
+        Bind(leaderboardBackButton,          () => ShowStartScreen());
+        if (leaderboardModeTabs != null)
+        {
+            GameMode[] modes = { GameMode.Heart, GameMode.Rush, GameMode.Endless, GameMode.HeartExtreme, GameMode.RushExtreme };
+            for (int i = 0; i < leaderboardModeTabs.Length && i < modes.Length; i++)
+            {
+                int idx = i;
+                Bind(leaderboardModeTabs[idx], () => { leaderboardCurrentMode = modes[idx]; PopulateLeaderboard(modes[idx]); UpdateLeaderboardTabHighlight(); });
+            }
+        }
+        if (playerNameInput != null)
+        {
+            playerNameInput.text = LeaderboardManager.GetPlayerName();
+            playerNameInput.onEndEdit.AddListener(name => {
+                if (!string.IsNullOrEmpty(name)) LeaderboardManager.SetPlayerName(name);
+            });
+        }
+        Bind(loginConfirmButton, () => ConfirmLogin());
         Bind(settingsButton,            () => ShowSettingsScreen());
         Bind(startSettingsButton,       () => ShowSettingsScreen());
         Bind(hudSettingsButton,         () => GM(g => g.PauseGame()));
@@ -224,6 +266,27 @@ public class UIManager : MonoBehaviour
 
     public void ShowStartScreen()
     {
+        string savedName = LeaderboardManager.GetPlayerName();
+        if (savedName == "Player" || string.IsNullOrEmpty(savedName))
+        {
+            ShowLoginScreen();
+            return;
+        }
+        SetAllScreens(start: true);
+    }
+
+    public void ShowLoginScreen()
+    {
+        SetAllScreens(login: true);
+        if (playerNameInput != null)
+            playerNameInput.text = LeaderboardManager.GetPlayerName() == "Player" ? "" : LeaderboardManager.GetPlayerName();
+    }
+
+    void ConfirmLogin()
+    {
+        string name = playerNameInput != null ? playerNameInput.text.Trim() : "";
+        if (string.IsNullOrEmpty(name)) return;
+        LeaderboardManager.SetPlayerName(name);
         SetAllScreens(start: true);
     }
 
@@ -622,10 +685,10 @@ public class UIManager : MonoBehaviour
         // Level requirement
         if (car.requiredLevel > 0)
         {
-            bool heartOk = GameManager.GetUnlockedLevel(GameMode.Normal) >= car.requiredLevel;
+            bool heartOk = GameManager.GetUnlockedLevel(GameMode.Heart) >= car.requiredLevel;
             AddReqRow(panelGO.transform, heartOk,
                 string.Format(LocalizationManager.L("car_req_heart", "Heart Mode Lv.{0}"), car.requiredLevel),
-                heartOk ? "\u2713" : $"(Lv.{GameManager.GetUnlockedLevel(GameMode.Normal) + 1})", y, y + rowH);
+                heartOk ? "\u2713" : $"(Lv.{GameManager.GetUnlockedLevel(GameMode.Heart) + 1})", y, y + rowH);
             y -= rowH + 0.02f;
 
             bool rushOk = GameManager.GetUnlockedLevel(GameMode.Rush) >= car.requiredLevel;
@@ -883,6 +946,106 @@ public class UIManager : MonoBehaviour
         if (settingsScreen != null) settingsScreen.SetActive(false);
     }
 
+    // ── Leaderboard ─────────────────────────────────────────────────────
+    GameMode leaderboardCurrentMode = GameMode.Heart;
+
+    public void ShowLeaderboardScreen(GameMode mode = GameMode.Heart)
+    {
+        SetAllScreens(leaderboard: true);
+        leaderboardCurrentMode = mode;
+        PopulateLeaderboard(mode);
+        UpdateLeaderboardTabHighlight();
+    }
+
+    void PopulateLeaderboard(GameMode mode)
+    {
+        if (leaderboardContent == null) return;
+        for (int i = leaderboardContent.childCount - 1; i >= 0; i--)
+            Destroy(leaderboardContent.GetChild(i).gameObject);
+
+        var entries = LeaderboardManager.GetEntriesStatic(mode);
+
+        if (entries.Count == 0)
+        {
+            var emptyGO = new GameObject("Empty", typeof(RectTransform));
+            emptyGO.transform.SetParent(leaderboardContent, false);
+            var tmp = emptyGO.AddComponent<TextMeshProUGUI>();
+            tmp.text = LocalizationManager.L("lb_empty", "No records yet");
+            tmp.fontSize = 24;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = new Color(0.5f, 0.35f, 0.35f);
+            var emptyRT = (RectTransform)emptyGO.transform;
+            emptyRT.anchorMin = new Vector2(0, 1);
+            emptyRT.anchorMax = new Vector2(1, 1);
+            emptyRT.sizeDelta = new Vector2(0, 50);
+            return;
+        }
+
+        for (int i = 0; i < entries.Count; i++)
+            CreateLeaderboardRow(i + 1, entries[i], mode);
+    }
+
+    void CreateLeaderboardRow(int rank, LeaderboardEntry entry, GameMode mode)
+    {
+        var rowGO = new GameObject("Row_" + rank, typeof(RectTransform));
+        rowGO.transform.SetParent(leaderboardContent, false);
+        var rt = (RectTransform)rowGO.transform;
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.sizeDelta = new Vector2(0, 55);
+
+        var layout = rowGO.AddComponent<HorizontalLayoutGroup>();
+        layout.childAlignment = TextAnchor.MiddleLeft;
+        layout.spacing = 8;
+        layout.childControlWidth = true;
+        layout.childControlHeight = true;
+        layout.childForceExpandWidth = false;
+        layout.childForceExpandHeight = true;
+        layout.padding = new RectOffset(20, 20, 0, 0);
+
+        Color textColor = new Color(0.3f, 0.15f, 0.15f);
+        Color rankColor = rank <= 3 ? new Color(0.6f, 0.25f, 0.05f) : textColor;
+        bool isEndless = mode == GameMode.Endless;
+        string levelStr = isEndless
+            ? LocalizationManager.LFmt("lb_tier_fmt", "Tier {0}", entry.level)
+            : LocalizationManager.LFmt("lb_level_fmt", "Lv.{0}", entry.level);
+
+        AddRowCell(rowGO.transform, LocalizationManager.LFmt("lb_rank", "#{0}", rank), 60, 0, rankColor, TextAlignmentOptions.Center, rank <= 3 ? 26 : 22);
+        AddRowCell(rowGO.transform, entry.playerName, 0, 1, textColor, TextAlignmentOptions.Left, 22);
+        AddRowCell(rowGO.transform, LocalizationManager.LFmt("lb_score_fmt", "{0} coins", entry.score), 180, 0, rankColor, TextAlignmentOptions.Right, 22);
+        AddRowCell(rowGO.transform, levelStr, 80, 0, textColor, TextAlignmentOptions.Center, 20);
+        AddRowCell(rowGO.transform, LocalizationManager.LFmt("lb_deliveries_fmt", "{0} deliveries", entry.deliveries), 140, 0, textColor, TextAlignmentOptions.Center, 18);
+        AddRowCell(rowGO.transform, entry.date, 140, 0, new Color(0.35f, 0.2f, 0.2f), TextAlignmentOptions.Right, 18);
+    }
+
+    void AddRowCell(Transform parent, string text, float prefWidth, float flexWidth, Color color, TextAlignmentOptions align, float fontSize)
+    {
+        var go = new GameObject("Cell", typeof(RectTransform));
+        go.transform.SetParent(parent, false);
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text = text;
+        tmp.fontSize = fontSize;
+        tmp.fontStyle = FontStyles.Bold;
+        tmp.color = color;
+        tmp.alignment = align;
+        tmp.overflowMode = TextOverflowModes.Ellipsis;
+        var le = go.AddComponent<LayoutElement>();
+        if (prefWidth > 0) le.preferredWidth = prefWidth;
+        le.flexibleWidth = flexWidth;
+    }
+
+    void UpdateLeaderboardTabHighlight()
+    {
+        if (leaderboardModeTabs == null) return;
+        GameMode[] modes = { GameMode.Heart, GameMode.Rush, GameMode.Endless, GameMode.HeartExtreme, GameMode.RushExtreme };
+        for (int i = 0; i < leaderboardModeTabs.Length && i < modes.Length; i++)
+        {
+            var txt = leaderboardModeTabs[i].GetComponentInChildren<TextMeshProUGUI>();
+            if (txt != null)
+                txt.color = modes[i] == leaderboardCurrentMode ? new Color(1f, 0.85f, 0.1f) : Color.white;
+        }
+    }
+
     void UpdateLanguageButtonText()
     {
         if (languageButtonText == null) return;
@@ -934,7 +1097,7 @@ public class UIManager : MonoBehaviour
         SetText(volumeLabelText,         "settings_volume");
         SetText(modeSelectTitleText,     "select_mode_title");
         SetText(rushModeDescText,        "mode_rush_desc");
-        SetText(normalModeDescText,      "mode_normal_desc");
+        SetText(heartModeDescText,      "mode_heart_desc");
         SetText(endlessModeDescText,     "mode_endless_desc");
         SetText(heartExtremeDescText,    "mode_heart_extreme_desc");
         SetText(rushExtremeDescText,     "mode_rush_extreme_desc");
@@ -965,7 +1128,7 @@ public class UIManager : MonoBehaviour
         SetButtonLabel(startSettingsButton,      "btn_settings");
         SetButtonLabel(closeSettingsButton,      "btn_close");
         SetButtonLabel(rushModeButton,           "mode_rush");
-        SetButtonLabel(normalModeButton,         "mode_normal");
+        SetButtonLabel(heartModeButton,         "mode_heart");
         SetButtonLabel(endlessModeButton,        "mode_endless");
         SetButtonLabel(heartExtremeModeButton,   "mode_heart_extreme");
         SetButtonLabel(rushExtremeModeButton,    "mode_rush_extreme");
@@ -974,6 +1137,20 @@ public class UIManager : MonoBehaviour
         SetButtonLabel(modeBackToStartButton,    "btn_back");
         SetButtonLabel(carSelectBackButton,      "btn_back");
         SetButtonLabel(startCarSelectButton,     "car_select_title");
+        SetText(leaderboardTitleText,            "lb_title");
+        SetButtonLabel(leaderboardBackButton,    "btn_back");
+        SetButtonLabel(startLeaderboardButton,         "btn_leaderboard");
+        SetButtonLabel(modeSelectLeaderboardButton,    "btn_leaderboard");
+        SetButtonLabel(gameOverLeaderboardButton,      "btn_leaderboard");
+        SetButtonLabel(levelCompleteLeaderboardButton, "btn_leaderboard");
+        SetButtonLabel(victoryLeaderboardButton,       "btn_leaderboard");
+        SetButtonLabel(endlessLeaderboardButton,       "btn_leaderboard");
+        if (leaderboardModeTabs != null)
+        {
+            string[] tabKeys = { "lb_mode_heart", "lb_mode_rush", "lb_mode_endless", "lb_mode_heart_extreme", "lb_mode_rush_extreme" };
+            for (int i = 0; i < leaderboardModeTabs.Length && i < tabKeys.Length; i++)
+                SetButtonLabel(leaderboardModeTabs[i], tabKeys[i]);
+        }
 
         // Refresh level-select lock and back button labels
         if (levelButtons != null)
@@ -1009,10 +1186,12 @@ public class UIManager : MonoBehaviour
         if (pauseScreen != null) pauseScreen.SetActive(false);
     }
 
-    void SetAllScreens(bool start = false, bool modeSelect = false, bool gameplay = false,
+    void SetAllScreens(bool login = false, bool start = false, bool modeSelect = false, bool gameplay = false,
                        bool gameOver = false, bool levelComplete = false, bool victory = false,
-                       bool endlessSummary = false, bool levelSelect = false, bool carSelect = false)
+                       bool endlessSummary = false, bool levelSelect = false, bool carSelect = false,
+                       bool leaderboard = false)
     {
+        if (loginScreen != null)          loginScreen.SetActive(login);
         if (startScreen != null)          startScreen.SetActive(start);
         if (modeSelectScreen != null)     modeSelectScreen.SetActive(modeSelect);
         if (gameplayUI != null)           gameplayUI.SetActive(gameplay);
@@ -1022,6 +1201,7 @@ public class UIManager : MonoBehaviour
         if (endlessSummaryScreen != null) endlessSummaryScreen.SetActive(endlessSummary);
         if (levelSelectScreen != null)    levelSelectScreen.SetActive(levelSelect);
         if (carSelectScreen != null)      carSelectScreen.SetActive(carSelect);
+        if (leaderboardScreen != null)    leaderboardScreen.SetActive(leaderboard);
         if (pauseScreen != null)          pauseScreen.SetActive(false);
         if (settingsScreen != null)       settingsScreen.SetActive(false);
     }
@@ -1216,7 +1396,7 @@ public class UIManager : MonoBehaviour
         int unlocked = GameManager.GetUnlockedLevel(mode);
         string timeFmt  = LocalizationManager.L("level_select_time_fmt",  "{0}s");
         string scoreFmt = LocalizationManager.L("level_select_score_fmt", "{0}pts");
-        bool showLives = mode == GameMode.Normal || mode == GameMode.HeartExtreme;
+        bool showLives = mode == GameMode.Heart || mode == GameMode.HeartExtreme;
 
         for (int i = 0; i < levelButtons.Length; i++)
         {
@@ -1416,16 +1596,7 @@ public class UIManager : MonoBehaviour
         if (screen == null) return null;
         var existing = screen.transform.Find(name);
         if (existing != null) return existing.GetComponent<TextMeshProUGUI>();
-
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(screen.transform, false);
-        AnchorRect(go, new Vector2(0.1f, 0.28f), new Vector2(0.9f, 0.36f));
-        var tmp = go.AddComponent<TextMeshProUGUI>();
-        tmp.fontSize = 28;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = new Color(0.8f, 0.8f, 0.3f);
-        tmp.raycastTarget = false;
-        return tmp;
+        return null;
     }
 
     // ── Settings extras (BGM/SFX sliders + fullscreen) ─────────────────────

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 public enum GameState { StartScreen, CarSelect, Playing, GameOver }
-public enum GameMode  { Normal, Rush, Endless, HeartExtreme, RushExtreme }
+public enum GameMode  { Heart, Rush, Endless, HeartExtreme, RushExtreme }
 
 public class GameManager : MonoBehaviour
 {
@@ -24,7 +24,7 @@ public class GameManager : MonoBehaviour
     public static event System.Action OnCarChanged;
 
     public GameState State       { get; private set; } = GameState.StartScreen;
-    public GameMode  CurrentMode { get; private set; } = GameMode.Normal;
+    public GameMode  CurrentMode { get; private set; } = GameMode.Heart;
     public int   Score           { get; private set; }
     public int   PassScore       { get; private set; }
     public float TimeRemaining   { get; private set; }
@@ -34,7 +34,7 @@ public class GameManager : MonoBehaviour
     public bool   IsRushOrder        => isRushOrder;
     public int CurrentLevel => CurrentMode == GameMode.Endless ? endlessTier + 1 : currentLevel + 1;
 
-    public bool IsHeartMode => CurrentMode == GameMode.Normal || CurrentMode == GameMode.HeartExtreme;
+    public bool IsHeartMode => CurrentMode == GameMode.Heart || CurrentMode == GameMode.HeartExtreme;
     public bool IsRushMode  => CurrentMode == GameMode.Rush   || CurrentMode == GameMode.RushExtreme;
     public bool IsExtreme   => CurrentMode == GameMode.HeartExtreme || CurrentMode == GameMode.RushExtreme;
     public float NPCSpeedMultiplier => IsExtreme ? 1.5f : 1f;
@@ -146,7 +146,7 @@ public class GameManager : MonoBehaviour
         if (Coins < car.unlockCost) return false;
         if (car.requiredLevel > 0)
         {
-            if (GetUnlockedLevel(GameMode.Normal) < car.requiredLevel) return false;
+            if (GetUnlockedLevel(GameMode.Heart) < car.requiredLevel) return false;
             if (GetUnlockedLevel(GameMode.Rush) < car.requiredLevel) return false;
         }
         if (car.requiredEndlessTier10 > 0)
@@ -161,7 +161,7 @@ public class GameManager : MonoBehaviour
         var parts = new System.Collections.Generic.List<string>();
         if (car.requiredLevel > 0)
         {
-            bool heartOk = GetUnlockedLevel(GameMode.Normal) >= car.requiredLevel;
+            bool heartOk = GetUnlockedLevel(GameMode.Heart) >= car.requiredLevel;
             bool rushOk = GetUnlockedLevel(GameMode.Rush) >= car.requiredLevel;
             string heartIcon = heartOk ? "\u2713" : "\u2717";
             string rushIcon = rushOk ? "\u2713" : "\u2717";
@@ -350,7 +350,7 @@ public class GameManager : MonoBehaviour
             uiManager.ShowLevelSelectScreen(mode);
     }
 
-    public GameMode BaseMode => CurrentMode == GameMode.HeartExtreme ? GameMode.Normal
+    public GameMode BaseMode => CurrentMode == GameMode.HeartExtreme ? GameMode.Heart
                               : CurrentMode == GameMode.RushExtreme  ? GameMode.Rush
                               : CurrentMode;
 
@@ -415,6 +415,7 @@ public class GameManager : MonoBehaviour
 
     public void NextLevel()
     {
+        RecordLeaderboardEntry();
         currentLevel++;
         StartGame();
     }
@@ -459,6 +460,10 @@ public class GameManager : MonoBehaviour
         if (PowerUpManager.Instance != null) PowerUpManager.Instance.OnGameStateChanged(GameState.GameOver);
         AudioManager.Play(a => { a.StopBGM(); a.PlayGameOver(); });
 
+        PlayerPrefs.SetString("_LB_DEBUG", $"EndGame called! Score={Score} Mode={CurrentMode} Time={System.DateTime.Now}");
+        PlayerPrefs.Save();
+        RecordLeaderboardEntry();
+
         if (CurrentMode == GameMode.Endless)
         {
             SaveBestScore(GameMode.Endless, Score);
@@ -490,6 +495,18 @@ public class GameManager : MonoBehaviour
             SaveBestScore(CurrentMode, Score);
             uiManager.ShowVictory(Score, GetBestScore(CurrentMode));
         }
+    }
+
+    void RecordLeaderboardEntry()
+    {
+        LeaderboardManager.RecordEntry(
+            LeaderboardManager.GetPlayerName(),
+            Score,
+            CurrentMode.ToString(),
+            CurrentMode == GameMode.Endless ? endlessTier + 1 : currentLevel + 1,
+            deliveryCount,
+            selectedCar != null ? selectedCar.carId : ""
+        );
     }
 
     public void GenerateNewOrder()
@@ -584,6 +601,8 @@ public class GameManager : MonoBehaviour
         AudioManager.Play(a => a.PlayDelivered());
         uiManager.ShowScorePopup(totalCoins);
 
+        deliveryCount++;
+
         if ((IsRushMode || IsHeartMode) && Score >= Levels[currentLevel].scoreNeeded)
         {
             if (currentLevel == TotalLevels - 1) { EndGame(); return true; }
@@ -604,7 +623,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        deliveryCount++;
         GenerateNewOrder();
         player.TriggerSpeedBoost();
         return true;
@@ -653,6 +671,7 @@ public class GameManager : MonoBehaviour
         uiManager.HideRushCountdown();
         SaveBestScore(CurrentMode, Score);
         SaveUnlockedLevel(CurrentMode, currentLevel + 1);
+        RecordLeaderboardEntry();
         currentLevel++;
         UpdateNPCSprites();
         StartGame();
