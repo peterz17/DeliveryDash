@@ -13492,7 +13492,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e59f6c04a4e44a7c9a0b1efa899feb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  uiManager: {fileID: 1201692088}
+  uiManager: {fileID: 2056714900}
   player: {fileID: 732012560}
   normalCarSprites:
   - {fileID: 21300000, guid: 3e05a120004e147af8b79e483966070a, type: 3}
@@ -13564,7 +13564,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 450, y: -191}
+  m_AnchoredPosition: {x: 525, y: -191}
   m_SizeDelta: {x: 1052, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &550206402
@@ -17027,7 +17027,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 450, y: -83}
+  m_AnchoredPosition: {x: 525, y: -83}
   m_SizeDelta: {x: 1052, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &682367614
@@ -19091,7 +19091,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 450, y: -29}
+  m_AnchoredPosition: {x: 525, y: -29}
   m_SizeDelta: {x: 1052, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &762983573
@@ -24442,7 +24442,7 @@ MonoBehaviour:
   nextLevelButton: {fileID: 147011866}
   playAgainButton: {fileID: 2122210247}
   rushModeButton: {fileID: 1108804188}
-  heartModeButton: {fileID: 0}
+  heartModeButton: {fileID: 1076348346}
   endlessModeButton: {fileID: 1389233938}
   heartExtremeModeButton: {fileID: 1062630069}
   rushExtremeModeButton: {fileID: 1670305324}
@@ -24500,7 +24500,7 @@ MonoBehaviour:
   volumeLabelText: {fileID: 1172419860}
   modeSelectTitleText: {fileID: 526896084}
   rushModeDescText: {fileID: 42943886}
-  heartModeDescText: {fileID: 0}
+  heartModeDescText: {fileID: 894772321}
   endlessModeDescText: {fileID: 1044182777}
   heartExtremeDescText: {fileID: 1183588157}
   rushExtremeDescText: {fileID: 1134900466}
@@ -25930,7 +25930,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 450, y: -137}
+  m_AnchoredPosition: {x: 525, y: -137}
   m_SizeDelta: {x: 1052, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1076787030
@@ -49837,7 +49837,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.19, y: 0.915}
   m_AnchorMax: {x: 0.42, y: 1}
-  m_AnchoredPosition: {x: -1.999939, y: -4}
+  m_AnchoredPosition: {x: -2, y: -4}
   m_SizeDelta: {x: 4, y: 8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1791554722

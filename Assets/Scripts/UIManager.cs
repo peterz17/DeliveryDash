@@ -960,29 +960,59 @@ public class UIManager : MonoBehaviour
     void PopulateLeaderboard(GameMode mode)
     {
         if (leaderboardContent == null) return;
+        ClearLeaderboardContent();
+        ShowLoadingText();
+
+        FirestoreLeaderboard.FetchLeaderboard(mode.ToString(), 10, entries =>
+        {
+            ClearLeaderboardContent();
+            if (entries == null || entries.Count == 0)
+            {
+                ShowEmptyText();
+                return;
+            }
+            for (int i = 0; i < entries.Count; i++)
+                CreateLeaderboardRow(i + 1, entries[i], mode);
+        });
+    }
+
+    void ClearLeaderboardContent()
+    {
+        if (leaderboardContent == null) return;
         for (int i = leaderboardContent.childCount - 1; i >= 0; i--)
             Destroy(leaderboardContent.GetChild(i).gameObject);
+    }
 
-        var entries = LeaderboardManager.GetEntriesStatic(mode);
+    void ShowLoadingText()
+    {
+        var go = new GameObject("Loading", typeof(RectTransform));
+        go.transform.SetParent(leaderboardContent, false);
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text = "Loading...";
+        tmp.fontSize = 24;
+        tmp.fontStyle = FontStyles.Bold;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = new Color(0.3f, 0.15f, 0.15f);
+        var rt = (RectTransform)go.transform;
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.sizeDelta = new Vector2(0, 50);
+    }
 
-        if (entries.Count == 0)
-        {
-            var emptyGO = new GameObject("Empty", typeof(RectTransform));
-            emptyGO.transform.SetParent(leaderboardContent, false);
-            var tmp = emptyGO.AddComponent<TextMeshProUGUI>();
-            tmp.text = LocalizationManager.L("lb_empty", "No records yet");
-            tmp.fontSize = 24;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = new Color(0.5f, 0.35f, 0.35f);
-            var emptyRT = (RectTransform)emptyGO.transform;
-            emptyRT.anchorMin = new Vector2(0, 1);
-            emptyRT.anchorMax = new Vector2(1, 1);
-            emptyRT.sizeDelta = new Vector2(0, 50);
-            return;
-        }
-
-        for (int i = 0; i < entries.Count; i++)
-            CreateLeaderboardRow(i + 1, entries[i], mode);
+    void ShowEmptyText()
+    {
+        var go = new GameObject("Empty", typeof(RectTransform));
+        go.transform.SetParent(leaderboardContent, false);
+        var tmp = go.AddComponent<TextMeshProUGUI>();
+        tmp.text = LocalizationManager.L("lb_empty", "No records yet");
+        tmp.fontSize = 24;
+        tmp.fontStyle = FontStyles.Bold;
+        tmp.alignment = TextAlignmentOptions.Center;
+        tmp.color = new Color(0.5f, 0.35f, 0.35f);
+        var rt = (RectTransform)go.transform;
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.sizeDelta = new Vector2(0, 50);
     }
 
     void CreateLeaderboardRow(int rank, LeaderboardEntry entry, GameMode mode)

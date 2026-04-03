@@ -91,15 +91,7 @@ public class LeaderboardManager : MonoBehaviour
             date = System.DateTime.Now.ToString("yyyy-MM-dd")
         };
 
-        // Save directly via PlayerPrefs - no Instance needed
-        string key = "Leaderboard_" + mode;
-        string json = PlayerPrefs.GetString(key, "");
-        LeaderboardData data = string.IsNullOrEmpty(json) ? new LeaderboardData() : JsonUtility.FromJson<LeaderboardData>(json);
-        var list = new List<LeaderboardEntry>(data.entries) { entry };
-        list.Sort();
-        if (list.Count > MaxEntries) list.RemoveRange(MaxEntries, list.Count - MaxEntries);
-        data.entries = list.ToArray();
-        PlayerPrefs.SetString(key, JsonUtility.ToJson(data));
-        PlayerPrefs.Save();
+        // Upload to Firestore
+        FirestoreLeaderboard.UploadEntry(entry);
     }
 }

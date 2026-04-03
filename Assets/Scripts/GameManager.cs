@@ -281,6 +281,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        FirestoreLeaderboard.Prefetch();
         deliveryZones = Object.FindObjectsByType<DeliveryZone>(FindObjectsSortMode.None);
         zoneHighlights = new ZoneHighlight[deliveryZones.Length];
         for (int i = 0; i < deliveryZones.Length; i++)
@@ -460,8 +461,6 @@ public class GameManager : MonoBehaviour
         if (PowerUpManager.Instance != null) PowerUpManager.Instance.OnGameStateChanged(GameState.GameOver);
         AudioManager.Play(a => { a.StopBGM(); a.PlayGameOver(); });
 
-        PlayerPrefs.SetString("_LB_DEBUG", $"EndGame called! Score={Score} Mode={CurrentMode} Time={System.DateTime.Now}");
-        PlayerPrefs.Save();
         RecordLeaderboardEntry();
 
         if (CurrentMode == GameMode.Endless)
@@ -499,14 +498,17 @@ public class GameManager : MonoBehaviour
 
     void RecordLeaderboardEntry()
     {
-        LeaderboardManager.RecordEntry(
-            LeaderboardManager.GetPlayerName(),
-            Score,
-            CurrentMode.ToString(),
-            CurrentMode == GameMode.Endless ? endlessTier + 1 : currentLevel + 1,
-            deliveryCount,
-            selectedCar != null ? selectedCar.carId : ""
-        );
+        var entry = new LeaderboardEntry
+        {
+            playerName = PlayerPrefs.GetString("PlayerName", "Player"),
+            score = Score,
+            mode = CurrentMode.ToString(),
+            level = CurrentMode == GameMode.Endless ? endlessTier + 1 : currentLevel + 1,
+            deliveries = deliveryCount,
+            carId = selectedCar != null ? selectedCar.carId : "",
+            date = System.DateTime.Now.ToString("yyyy-MM-dd")
+        };
+        FirestoreLeaderboard.UploadEntry(entry);
     }
 
     public void GenerateNewOrder()
@@ -669,9 +671,9 @@ public class GameManager : MonoBehaviour
         waitingForRushAdvance = false;
         Time.timeScale = 1f;
         uiManager.HideRushCountdown();
+        RecordLeaderboardEntry();
         SaveBestScore(CurrentMode, Score);
         SaveUnlockedLevel(CurrentMode, currentLevel + 1);
-        RecordLeaderboardEntry();
         currentLevel++;
         UpdateNPCSprites();
         StartGame();
