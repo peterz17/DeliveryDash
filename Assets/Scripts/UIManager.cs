@@ -112,6 +112,8 @@ public class UIManager : MonoBehaviour
 
     [Header("Login Screen")]
     public GameObject loginScreen;
+    public TextMeshProUGUI loginTitleText;
+    public TextMeshProUGUI loginSubtitleText;
     public TMP_InputField playerNameInput;
     public Button loginConfirmButton;
 
@@ -1146,7 +1148,12 @@ public class UIManager : MonoBehaviour
         SetText(zoneLabelOpacityLabel,  "settings_zone_labels");
         UpdateFullscreenButtonLabel();
 
+        // Login screen
+        SetText(loginTitleText,         "login_title");
+        SetText(loginSubtitleText,      "login_subtitle");
+
         // Button labels
+        SetButtonLabel(loginConfirmButton,       "btn_confirm");
         SetButtonLabel(startButton,              "btn_start");
         SetButtonLabel(retryButton,              "btn_retry");
         SetButtonLabel(nextLevelButton,          "btn_go_next");

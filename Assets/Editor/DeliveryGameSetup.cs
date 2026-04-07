@@ -406,6 +406,7 @@ public static class DeliveryGameSetup
                     RewireGO(ref uiManager.settingsScreen,       "SettingsScreen");
                     RewireGO(ref uiManager.carSelectScreen,      "CarSelectScreen");
                     RewireGO(ref uiManager.leaderboardScreen,    "LeaderboardScreen");
+                    RewireGO(ref uiManager.loginScreen,          "LoginScreen");
 
                     // Build LeaderboardScreen if missing
                     if (uiManager.leaderboardScreen == null)
@@ -514,7 +515,13 @@ public static class DeliveryGameSetup
                         }
                     }
 
-                    // PlayerNameInput lives in LoginScreen, not StartScreen
+                    // Login screen refs
+                    if (uiManager.loginTitleText == null)
+                        uiManager.loginTitleText = RewireComp<TextMeshProUGUI>("LoginScreen/LoginTitle");
+                    if (uiManager.loginSubtitleText == null)
+                        uiManager.loginSubtitleText = RewireComp<TextMeshProUGUI>("LoginScreen/LoginSubtitle");
+                    if (uiManager.loginConfirmButton == null)
+                        uiManager.loginConfirmButton = RewireComp<Button>("LoginScreen/LoginConfirmButton");
                     if (uiManager.playerNameInput == null)
                         uiManager.playerNameInput = RewireComp<TMP_InputField>("LoginScreen/PlayerNameInput");
                     // Remove stale PlayerNameInput from StartScreen if it exists
@@ -1107,8 +1114,8 @@ public static class DeliveryGameSetup
             EnsureCarDataAssets();
             gm.carCatalog = new CarData[]
             {
-                AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/pickup.asset"),
                 AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/sedan.asset"),
+                AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/pickup.asset"),
                 AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/van.asset"),
                 AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/motorbike.asset"),
                 AssetDatabase.LoadAssetAtPath<CarData>("Assets/Resources/Cars/sports_car.asset"),
@@ -1337,7 +1344,70 @@ public static class DeliveryGameSetup
         var startLbBtn = startLbBtnGO.GetComponent<Button>();
         startLbBtnGO.GetComponentInChildren<TextMeshProUGUI>().text = "Leaderboard";
 
-        // PlayerNameInput is in LoginScreen, not StartScreen
+        // ── Login Screen ─────────────────────────────────────────────────────
+        var loginGO = MakeFullScreenPanel(canvasGO, "LoginScreen", new Color(0.05f, 0.06f, 0.13f, 0.97f));
+
+        var loginTitleTxt = MakeTMP(loginGO, "LoginTitle", "DELIVERY DASH", 72, TextAlignmentOptions.Center,
+            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 100), new Vector2(0, 190));
+        loginTitleTxt.fontStyle = FontStyles.Bold;
+        loginTitleTxt.color = new Color(0f, 0.85f, 1f);
+
+        var loginSubtitleTxt = MakeTMP(loginGO, "LoginSubtitle", "Enter your nickname", 28, TextAlignmentOptions.Center,
+            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 40), new Vector2(0, 60));
+        loginSubtitleTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
+
+        // PlayerNameInput
+        var inputGO = new GameObject("PlayerNameInput", typeof(RectTransform));
+        inputGO.transform.SetParent(loginGO.transform, false);
+        var inputRT = (RectTransform)inputGO.transform;
+        inputRT.anchorMin = new Vector2(0.20f, 0.42f);
+        inputRT.anchorMax = new Vector2(0.80f, 0.50f);
+        inputRT.offsetMin = inputRT.offsetMax = Vector2.zero;
+        var inputImg = inputGO.AddComponent<UnityEngine.UI.Image>();
+        inputImg.color = new Color(0.15f, 0.17f, 0.25f, 1f);
+
+        // Text Area child (required by TMP_InputField)
+        var textAreaGO = new GameObject("Text Area", typeof(RectTransform));
+        textAreaGO.transform.SetParent(inputGO.transform, false);
+        StretchFull(textAreaGO);
+        var textAreaRT = (RectTransform)textAreaGO.transform;
+        textAreaRT.offsetMin = new Vector2(10, 2);
+        textAreaRT.offsetMax = new Vector2(-10, -2);
+        textAreaGO.AddComponent<RectMask2D>();
+
+        // Placeholder
+        var placeholderGO = new GameObject("Placeholder", typeof(RectTransform));
+        placeholderGO.transform.SetParent(textAreaGO.transform, false);
+        StretchFull(placeholderGO);
+        var placeholderTMP = placeholderGO.AddComponent<TextMeshProUGUI>();
+        placeholderTMP.text = "Name...";
+        placeholderTMP.fontSize = 26;
+        placeholderTMP.fontStyle = FontStyles.Italic;
+        placeholderTMP.color = new Color(0.5f, 0.5f, 0.6f, 0.6f);
+        placeholderTMP.alignment = TextAlignmentOptions.MidlineLeft;
+        placeholderTMP.enableAutoSizing = false;
+
+        // Input Text
+        var inputTextGO = new GameObject("Text", typeof(RectTransform));
+        inputTextGO.transform.SetParent(textAreaGO.transform, false);
+        StretchFull(inputTextGO);
+        var inputTextTMP = inputTextGO.AddComponent<TextMeshProUGUI>();
+        inputTextTMP.fontSize = 26;
+        inputTextTMP.color = Color.white;
+        inputTextTMP.alignment = TextAlignmentOptions.MidlineLeft;
+        inputTextTMP.enableAutoSizing = false;
+
+        var tmpInput = inputGO.AddComponent<TMP_InputField>();
+        tmpInput.textViewport = textAreaRT;
+        tmpInput.textComponent = inputTextTMP;
+        tmpInput.placeholder = placeholderTMP;
+        tmpInput.characterLimit = 20;
+        tmpInput.contentType = TMP_InputField.ContentType.Standard;
+        tmpInput.pointSize = 26;
+
+        var loginConfirmBtn = MakeButton(loginGO, "LoginConfirmButton", "CONFIRM",
+            new Vector2(0.30f, 0.30f), new Vector2(0.70f, 0.38f), Vector2.zero, Vector2.zero);
+        ApplyButtonColor(loginConfirmBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
         // ── Level Fail Screen ─────────────────────────────────────────────────
         var gameOverGO = MakeFullScreenPanel(canvasGO, "GameOverScreen", new Color(0.08f, 0.05f, 0.12f, 0.93f));
@@ -1973,7 +2043,13 @@ public static class DeliveryGameSetup
 
         // Start screen leaderboard
         uiManager.startLeaderboardButton = startLbBtnGO.GetComponent<Button>();
-        // playerNameInput is wired from LoginScreen in else-branch
+
+        // Login screen
+        uiManager.loginScreen = loginGO;
+        uiManager.loginTitleText = loginTitleTxt;
+        uiManager.loginSubtitleText = loginSubtitleTxt;
+        uiManager.playerNameInput = tmpInput;
+        uiManager.loginConfirmButton = loginConfirmBtn;
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

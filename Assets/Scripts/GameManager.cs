@@ -508,7 +508,7 @@ public class GameManager : MonoBehaviour
             carId = selectedCar != null ? selectedCar.carId : "",
             date = System.DateTime.Now.ToString("yyyy-MM-dd")
         };
-        FirestoreLeaderboard.UploadEntry(entry);
+        FirestoreLeaderboard.UploadIfQualified(entry);
     }
 
     public void GenerateNewOrder()

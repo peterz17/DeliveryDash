@@ -12891,6 +12891,8 @@ MonoBehaviour:
   victoryLeaderboardButton: {fileID: 0}
   endlessLeaderboardButton: {fileID: 0}
   loginScreen: {fileID: 479465874}
+  loginTitleText: {fileID: 0}
+  loginSubtitleText: {fileID: 0}
   playerNameInput: {fileID: 719027061}
   loginConfirmButton: {fileID: 1239450014}
   startTitleText: {fileID: 777222521}
@@ -13492,7 +13494,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e59f6c04a4e44a7c9a0b1efa899feb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  uiManager: {fileID: 1023462715}
+  uiManager: {fileID: 530760140}
   player: {fileID: 732012560}
   normalCarSprites:
   - {fileID: 21300000, guid: 3e05a120004e147af8b79e483966070a, type: 3}
@@ -24493,6 +24495,8 @@ MonoBehaviour:
   victoryLeaderboardButton: {fileID: 0}
   endlessLeaderboardButton: {fileID: 0}
   loginScreen: {fileID: 479465874}
+  loginTitleText: {fileID: 0}
+  loginSubtitleText: {fileID: 0}
   playerNameInput: {fileID: 719027061}
   loginConfirmButton: {fileID: 1239450014}
   startTitleText: {fileID: 777222521}
@@ -31134,6 +31138,8 @@ MonoBehaviour:
   victoryLeaderboardButton: {fileID: 0}
   endlessLeaderboardButton: {fileID: 0}
   loginScreen: {fileID: 0}
+  loginTitleText: {fileID: 0}
+  loginSubtitleText: {fileID: 0}
   playerNameInput: {fileID: 719027061}
   loginConfirmButton: {fileID: 0}
   startTitleText: {fileID: 777222521}
@@ -55189,9 +55195,11 @@ MonoBehaviour:
   levelCompleteLeaderboardButton: {fileID: 0}
   victoryLeaderboardButton: {fileID: 0}
   endlessLeaderboardButton: {fileID: 0}
-  loginScreen: {fileID: 0}
+  loginScreen: {fileID: 479465874}
+  loginTitleText: {fileID: 0}
+  loginSubtitleText: {fileID: 0}
   playerNameInput: {fileID: 719027061}
-  loginConfirmButton: {fileID: 0}
+  loginConfirmButton: {fileID: 1239450014}
   startTitleText: {fileID: 777222521}
   settingsTitleText: {fileID: 877909160}
   volumeLabelText: {fileID: 1172419860}

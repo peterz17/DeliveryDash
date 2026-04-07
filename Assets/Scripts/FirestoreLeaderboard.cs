@@ -111,28 +111,51 @@ public static class FirestoreLeaderboard
 
     static IEnumerator FetchAllCoroutine(string mode, int limit, Action<List<LeaderboardEntry>> callback, GameObject runner)
     {
-        string url = BASE_URL + "/LeaderBoard?pageSize=300";
+        var allEntries = new List<LeaderboardEntry>();
+        string pageToken = null;
 
-        var request = UnityWebRequest.Get(url);
-        yield return request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.Success)
+        do
         {
+            string url = BASE_URL + "/LeaderBoard?pageSize=300";
+            if (!string.IsNullOrEmpty(pageToken))
+                url += "&pageToken=" + UnityWebRequest.EscapeURL(pageToken);
+
+            var request = UnityWebRequest.Get(url);
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogWarning("[Firestore] Fetch failed: " + request.error);
+                callback?.Invoke(new List<LeaderboardEntry>());
+                request.Dispose();
+                UnityEngine.Object.Destroy(runner);
+                yield break;
+            }
+
             string response = request.downloadHandler.text;
-            _cache = ParseListResponse(response);
-            _cacheTime = Time.realtimeSinceStartup;
-            Debug.Log("[Firestore] Fetched " + _cache.Count + " total entries");
-            if (callback != null && !string.IsNullOrEmpty(mode))
-                callback.Invoke(FilterByMode(_cache, mode, limit));
-        }
-        else
-        {
-            Debug.LogWarning("[Firestore] Fetch failed: " + request.error);
-            callback?.Invoke(new List<LeaderboardEntry>());
-        }
+            allEntries.AddRange(ParseListResponse(response));
+            pageToken = ExtractNextPageToken(response);
+            request.Dispose();
 
-        request.Dispose();
+        } while (!string.IsNullOrEmpty(pageToken));
+
+        _cache = allEntries;
+        _cacheTime = Time.realtimeSinceStartup;
+        Debug.Log("[Firestore] Fetched " + _cache.Count + " total entries");
+        if (callback != null && !string.IsNullOrEmpty(mode))
+            callback.Invoke(FilterByMode(_cache, mode, limit));
+
         UnityEngine.Object.Destroy(runner);
+    }
+
+    static string ExtractNextPageToken(string json)
+    {
+        string pattern = "\"nextPageToken\":\"";
+        int idx = json.IndexOf(pattern, StringComparison.Ordinal);
+        if (idx < 0) return null;
+        idx += pattern.Length;
+        int end = json.IndexOf("\"", idx, StringComparison.Ordinal);
+        return end > idx ? json.Substring(idx, end - idx) : null;
     }
 
     static List<LeaderboardEntry> FilterByMode(List<LeaderboardEntry> all, string mode, int limit)
