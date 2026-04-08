@@ -25,9 +25,10 @@
       apiKey: "AIzaSyBvvguczK4SyTild97wO4s31F_y9lmjvgw",
       authDomain: "deliverydash-b47d0.firebaseapp.com",
       projectId: "deliverydash-b47d0",
-      storageBucket: "deliverydash-b47d0.appspot.com",
-      messagingSenderId: "",
-      appId: ""
+      storageBucket: "deliverydash-b47d0.firebasestorage.app",
+      messagingSenderId: "612668144927",
+      appId: "1:612668144927:web:a34bba1c8cbb2ab4d0442a",
+      measurementId: "G-0H916W1P05"
     });
   </script>
 </head>
@@ -41,7 +42,7 @@
     </div>
   </div>
 
-  <script src="{{{ LOADER_FILENAME }}}"></script>
+  <script src="Build/{{{ LOADER_FILENAME }}}"></script>
   <script>
     var container = document.getElementById("unity-container");
     var canvas = document.getElementById("unity-canvas");
@@ -49,16 +50,16 @@
     var progressBarFull = document.getElementById("unity-progress-bar-full");
 
     createUnityInstance(canvas, {
-      dataUrl: "{{{ DATA_FILENAME }}}",
-      frameworkUrl: "{{{ FRAMEWORK_FILENAME }}}",
+      dataUrl: "Build/{{{ DATA_FILENAME }}}",
+      frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
 #if USE_WASM
-      codeUrl: "{{{ CODE_FILENAME }}}",
+      codeUrl: "Build/{{{ CODE_FILENAME }}}",
 #endif
 #if MEMORY_FILENAME
-      memoryUrl: "{{{ MEMORY_FILENAME }}}",
+      memoryUrl: "Build/{{{ MEMORY_FILENAME }}}",
 #endif
 #if SYMBOLS_FILENAME
-      symbolsUrl: "{{{ SYMBOLS_FILENAME }}}",
+      symbolsUrl: "Build/{{{ SYMBOLS_FILENAME }}}",
 #endif
       streamingAssetsUrl: "StreamingAssets",
       companyName: "{{{ COMPANY_NAME }}}",

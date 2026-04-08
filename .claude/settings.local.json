@@ -13,7 +13,8 @@
       "mcp__ai-game-developer__screenshot-game-view",
       "mcp__ai-game-developer__assets-refresh",
       "mcp__ai-game-developer__script-execute",
-      "mcp__ai-game-developer__gameobject-find"
+      "mcp__ai-game-developer__gameobject-find",
+      "mcp__ai-game-developer__screenshot-scene-view"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -53,13 +53,18 @@ public class WebGLAuthProvider : MonoBehaviour, IAuthProvider
     // Called from JavaScript via SendMessage
     public void OnGoogleSignInSuccess(string json)
     {
+        Debug.Log("[WebGLAuth] OnGoogleSignInSuccess called, json length=" + (json != null ? json.Length : 0));
         string idToken = ExtractField(json, "idToken");
         string refreshToken = ExtractField(json, "refreshToken");
         string displayName = ExtractField(json, "displayName");
+        Debug.Log("[WebGLAuth] displayName=" + displayName + " hasIdToken=" + !string.IsNullOrEmpty(idToken));
 
         if (AuthManager.Instance != null)
             AuthManager.Instance.SignInWithIdToken(idToken, refreshToken, displayName, AuthProviderType.Google);
+        else
+            Debug.LogWarning("[WebGLAuth] AuthManager.Instance is null!");
 
+        Debug.Log("[WebGLAuth] _onSuccess is " + (_onSuccess != null ? "set" : "NULL"));
         _onSuccess?.Invoke(idToken, refreshToken);
         _onSuccess = null;
         _onError = null;

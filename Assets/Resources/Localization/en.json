@@ -148,6 +148,7 @@
     { "key": "auth_signed_in",        "value": "Signed in as {0}" },
     { "key": "auth_cancelled",        "value": "Sign-in cancelled." },
     { "key": "auth_webgl_only",       "value": "Google Sign-In is only available in the web version." },
-    { "key": "auth_session_expired",  "value": "Session expired. Please sign in again." }
+    { "key": "auth_session_expired",  "value": "Session expired. Please sign in again." },
+    { "key": "auth_syncing",          "value": "Loading profile..." }
   ]
 }

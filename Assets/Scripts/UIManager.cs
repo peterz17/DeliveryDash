@@ -261,12 +261,15 @@ public class UIManager : MonoBehaviour
         RefreshLocalization();
     }
 
+    bool _profileSynced;
+
     void OnEnable()
     {
         LocalizationManager.OnLanguageChanged += RefreshLocalization;
         PowerUpManager.OnPowerUpActivated   += HandlePowerUpActivated;
         PowerUpManager.OnPowerUpDeactivated += HandlePowerUpDeactivated;
         AuthManager.OnAuthSessionExpired    += HandleSessionExpired;
+        AuthManager.OnAuthStateChanged      += HandleAuthReturningSession;
     }
 
     void OnDisable()
@@ -275,6 +278,15 @@ public class UIManager : MonoBehaviour
         PowerUpManager.OnPowerUpActivated   -= HandlePowerUpActivated;
         PowerUpManager.OnPowerUpDeactivated -= HandlePowerUpDeactivated;
         AuthManager.OnAuthSessionExpired    -= HandleSessionExpired;
+        AuthManager.OnAuthStateChanged      -= HandleAuthReturningSession;
+    }
+
+    void HandleAuthReturningSession()
+    {
+        if (_profileSynced) return;
+        if (AuthManager.Instance == null || !AuthManager.Instance.IsAuthenticated) return;
+        _profileSynced = true;
+        FirestoreUserProfile.SyncOnLogin(null);
     }
 
     void HandleSessionExpired()
@@ -327,9 +339,18 @@ public class UIManager : MonoBehaviour
         LeaderboardManager.SetPlayerName(name);
 
         if (AuthManager.Instance != null && !AuthManager.Instance.IsAuthenticated)
-            AuthManager.Instance.SignInAnonymous();
-
-        SetAllScreens(start: true);
+        {
+            if (authStatusText != null)
+                authStatusText.text = LocalizationManager.L("auth_syncing", "Loading profile...");
+            AuthManager.Instance.SignInAnonymous(
+                onSuccess: () => { _profileSynced = true; FirestoreUserProfile.SyncOnLogin(() => SetAllScreens(start: true)); },
+                onError: _ => SetAllScreens(start: true)
+            );
+        }
+        else
+        {
+            FirestoreUserProfile.SyncOnLogin(() => SetAllScreens(start: true));
+        }
     }
 
     void GoogleSignIn()
@@ -342,15 +363,22 @@ public class UIManager : MonoBehaviour
         if (authStatusText != null)
             authStatusText.text = LocalizationManager.L("auth_signing_in", "Signing in...");
 
+        Debug.Log("[UI] GoogleSignIn: WebGLAuthProvider.Instance=" + (WebGLAuthProvider.Instance != null));
         if (WebGLAuthProvider.Instance != null)
         {
             WebGLAuthProvider.Instance.SignIn(
                 (idToken, refreshToken) =>
                 {
-                    string googleName = AuthManager.Instance != null ? AuthManager.Instance.DisplayName : "";
-                    if (!string.IsNullOrEmpty(googleName))
-                        LeaderboardManager.SetPlayerName(googleName);
-                    SetAllScreens(start: true);
+                    Debug.Log("[UI] GoogleSignIn SUCCESS callback fired");
+                    _profileSynced = true;
+                    FirestoreUserProfile.SyncOnLogin(() =>
+                    {
+                        string savedName = LeaderboardManager.GetPlayerName();
+                        if (savedName == "Player" || string.IsNullOrEmpty(savedName))
+                            ShowLoginNamePhase();
+                        else
+                            SetAllScreens(start: true);
+                    });
                 },
                 error =>
                 {

@@ -60,6 +60,7 @@ public class LeaderboardManager : MonoBehaviour
     {
         PlayerPrefs.SetString("PlayerName", name);
         PlayerPrefs.Save();
+        FirestoreUserProfile.QueueSave();
     }
 
     LeaderboardData Load(string modeStr)

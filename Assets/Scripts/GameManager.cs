@@ -99,6 +99,7 @@ public class GameManager : MonoBehaviour
         {
             PlayerPrefs.SetInt(key, score);
             PlayerPrefs.Save();
+            FirestoreUserProfile.QueueSave();
         }
     }
 
@@ -111,6 +112,7 @@ public class GameManager : MonoBehaviour
         {
             PlayerPrefs.SetInt("BestTier_Endless", tier);
             PlayerPrefs.Save();
+            FirestoreUserProfile.QueueSave();
         }
     }
 
@@ -121,6 +123,7 @@ public class GameManager : MonoBehaviour
         {
             PlayerPrefs.SetInt(key, levelIndex);
             PlayerPrefs.Save();
+            FirestoreUserProfile.QueueSave();
         }
     }
 
@@ -131,6 +134,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("Coins", Coins + amount);
         PlayerPrefs.Save();
+        FirestoreUserProfile.QueueSave();
     }
 
     public bool IsCarUnlocked(CarData car)
@@ -184,6 +188,7 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("EndlessTier10Count", GetEndlessTier10Count() + 1);
         PlayerPrefs.Save();
+        FirestoreUserProfile.QueueSave();
     }
 
     public bool TryUnlockCar(CarData car)
@@ -193,6 +198,7 @@ public class GameManager : MonoBehaviour
         AddCoins(-car.unlockCost);
         PlayerPrefs.SetInt("CarUnlocked_" + car.carId, 1);
         PlayerPrefs.Save();
+        FirestoreUserProfile.QueueSave();
         return true;
     }
 
@@ -202,6 +208,7 @@ public class GameManager : MonoBehaviour
         selectedCar = car;
         PlayerPrefs.SetString("SelectedCar", car.carId);
         PlayerPrefs.Save();
+        FirestoreUserProfile.QueueSave();
         OnCarChanged?.Invoke();
     }
 
@@ -211,6 +218,7 @@ public class GameManager : MonoBehaviour
         foreach (var car in carCatalog)
             if (car != null) PlayerPrefs.SetInt("CarUnlocked_" + car.carId, 1);
         PlayerPrefs.Save();
+        FirestoreUserProfile.QueueSave();
     }
 
     public void ResetAllCars()
@@ -227,9 +235,10 @@ public class GameManager : MonoBehaviour
         if (carCatalog.Length > 0 && carCatalog[0] != null)
             SelectCar(carCatalog[0]);
         PlayerPrefs.Save();
+        FirestoreUserProfile.QueueSave();
     }
 
-    void LoadSelectedCar()
+    public void LoadSelectedCar()
     {
         string savedId = PlayerPrefs.GetString("SelectedCar", "");
         if (carCatalog != null)
