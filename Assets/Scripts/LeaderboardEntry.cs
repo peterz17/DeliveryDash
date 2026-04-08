@@ -10,6 +10,7 @@ public class LeaderboardEntry : IComparable<LeaderboardEntry>
     public int deliveries;
     public string carId;
     public string date;
+    public string uid;
 
     public int CompareTo(LeaderboardEntry other)
     {

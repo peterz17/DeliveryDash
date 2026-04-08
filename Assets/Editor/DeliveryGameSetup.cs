@@ -524,6 +524,133 @@ public static class DeliveryGameSetup
                         uiManager.loginConfirmButton = RewireComp<Button>("LoginScreen/LoginConfirmButton");
                     if (uiManager.playerNameInput == null)
                         uiManager.playerNameInput = RewireComp<TMP_InputField>("LoginScreen/PlayerNameInput");
+
+                    // Non-destructive: build LoginAuthPanel / LoginNamePanel
+                    if (uiManager.loginScreen != null)
+                    {
+                        var loginGO = uiManager.loginScreen;
+
+                        // Reposition LoginTitle for consistent layout
+                        RepositionAnchors(loginGO, "LoginTitle",
+                            new Vector2(0.08f, 0.70f), new Vector2(0.92f, 0.88f));
+
+                        // ── Auth Panel (Google + Guest buttons) ──
+                        var authPanelT = loginGO.transform.Find("LoginAuthPanel");
+                        GameObject authPanel;
+                        if (authPanelT == null)
+                        {
+                            authPanel = new GameObject("LoginAuthPanel", typeof(RectTransform));
+                            authPanel.transform.SetParent(loginGO.transform, false);
+                            var apRT = authPanel.GetComponent<RectTransform>();
+                            apRT.anchorMin = Vector2.zero; apRT.anchorMax = Vector2.one;
+                            apRT.offsetMin = apRT.offsetMax = Vector2.zero;
+
+                            // Move existing loose auth elements into panel
+                            MoveChildIfExists(loginGO, "OrDivider", authPanel);
+                            MoveChildIfExists(loginGO, "GoogleSignInButton", authPanel);
+                            MoveChildIfExists(loginGO, "GuestSignInButton", authPanel);
+                            MoveChildIfExists(loginGO, "AuthStatusText", authPanel);
+
+                            // Create if still missing
+                            if (authPanel.transform.Find("GoogleSignInButton") == null)
+                            {
+                                var googleBtn = MakeButton(authPanel, "GoogleSignInButton", "Sign in with Google",
+                                    new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.52f), Vector2.zero, Vector2.zero);
+                                var gImg = googleBtn.GetComponent<Image>();
+                                if (gImg != null) gImg.color = new Color(0.85f, 0.30f, 0.25f);
+                            }
+                            if (authPanel.transform.Find("OrDivider") == null)
+                            {
+                                var orTxt = MakeTMP(authPanel, "OrDivider", "— or —", 22, TextAlignmentOptions.Center,
+                                    new Vector2(0.30f, 0.35f), new Vector2(0.70f, 0.41f), Vector2.zero, Vector2.zero);
+                                orTxt.color = new Color(0.5f, 0.55f, 0.7f, 0.7f);
+                            }
+                            if (authPanel.transform.Find("GuestSignInButton") == null)
+                            {
+                                var guestBtn = MakeButton(authPanel, "GuestSignInButton", "Play as Guest",
+                                    new Vector2(0.22f, 0.24f), new Vector2(0.78f, 0.34f), Vector2.zero, Vector2.zero);
+                                var gImg = guestBtn.GetComponent<Image>();
+                                if (gImg != null) gImg.color = new Color(0.22f, 0.25f, 0.35f);
+                            }
+                            if (authPanel.transform.Find("AuthStatusText") == null)
+                            {
+                                var authTxt = MakeTMP(authPanel, "AuthStatusText", "", 18, TextAlignmentOptions.Center,
+                                    new Vector2(0.15f, 0.14f), new Vector2(0.85f, 0.22f), Vector2.zero, Vector2.zero);
+                                authTxt.color = new Color(0.7f, 0.75f, 0.9f, 0.8f);
+                            }
+                        }
+                        else
+                        {
+                            authPanel = authPanelT.gameObject;
+                        }
+                        // Always reposition auth panel elements for consistent layout
+                        RepositionAnchors(authPanel, "GoogleSignInButton",
+                            new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.52f));
+                        RepositionAnchors(authPanel, "OrDivider",
+                            new Vector2(0.30f, 0.35f), new Vector2(0.70f, 0.41f));
+                        RepositionAnchors(authPanel, "GuestSignInButton",
+                            new Vector2(0.22f, 0.24f), new Vector2(0.78f, 0.34f));
+                        RepositionAnchors(authPanel, "AuthStatusText",
+                            new Vector2(0.15f, 0.14f), new Vector2(0.85f, 0.22f));
+
+                        // ── Name Panel (subtitle + input + confirm + back) ──
+                        var namePanelT = loginGO.transform.Find("LoginNamePanel");
+                        GameObject namePanel;
+                        if (namePanelT == null)
+                        {
+                            namePanel = new GameObject("LoginNamePanel", typeof(RectTransform));
+                            namePanel.transform.SetParent(loginGO.transform, false);
+                            var npRT = namePanel.GetComponent<RectTransform>();
+                            npRT.anchorMin = Vector2.zero; npRT.anchorMax = Vector2.one;
+                            npRT.offsetMin = npRT.offsetMax = Vector2.zero;
+                            namePanel.SetActive(false);
+
+                            // Move existing loose name elements into panel
+                            MoveChildIfExists(loginGO, "SubtitleText", namePanel);
+                            MoveChildIfExists(loginGO, "PlayerNameInput", namePanel);
+                            MoveChildIfExists(loginGO, "LoginConfirmButton", namePanel);
+
+                            // Back button
+                            if (namePanel.transform.Find("LoginBackButton") == null)
+                            {
+                                var backBtn = MakeButton(namePanel, "LoginBackButton", "BACK",
+                                    new Vector2(0.22f, 0.17f), new Vector2(0.78f, 0.27f), Vector2.zero, Vector2.zero);
+                                var bImg = backBtn.GetComponent<Image>();
+                                if (bImg != null) bImg.color = new Color(0.22f, 0.25f, 0.35f);
+                            }
+                        }
+                        else
+                        {
+                            namePanel = namePanelT.gameObject;
+                        }
+                        // Always reposition name panel elements for consistent layout
+                        RepositionAnchors(namePanel, "SubtitleText",
+                            new Vector2(0.15f, 0.55f), new Vector2(0.85f, 0.63f));
+                        RepositionAnchors(namePanel, "PlayerNameInput",
+                            new Vector2(0.20f, 0.43f), new Vector2(0.80f, 0.53f));
+                        RepositionAnchors(namePanel, "LoginConfirmButton",
+                            new Vector2(0.22f, 0.30f), new Vector2(0.78f, 0.40f));
+                        RepositionAnchors(namePanel, "LoginBackButton",
+                            new Vector2(0.22f, 0.17f), new Vector2(0.78f, 0.27f));
+
+                        // Wire refs
+                        uiManager.loginAuthPanel = authPanel;
+                        uiManager.loginNamePanel = namePanel;
+                        uiManager.googleSignInButton = authPanel.transform.Find("GoogleSignInButton") != null
+                            ? authPanel.transform.Find("GoogleSignInButton").GetComponent<Button>() : null;
+                        uiManager.guestSignInButton = authPanel.transform.Find("GuestSignInButton") != null
+                            ? authPanel.transform.Find("GuestSignInButton").GetComponent<Button>() : null;
+                        uiManager.authStatusText = authPanel.transform.Find("AuthStatusText") != null
+                            ? authPanel.transform.Find("AuthStatusText").GetComponent<TextMeshProUGUI>() : null;
+                        uiManager.loginSubtitleText = namePanel.transform.Find("SubtitleText") != null
+                            ? namePanel.transform.Find("SubtitleText").GetComponent<TextMeshProUGUI>() : null;
+                        uiManager.playerNameInput = namePanel.transform.Find("PlayerNameInput") != null
+                            ? namePanel.transform.Find("PlayerNameInput").GetComponent<TMP_InputField>() : null;
+                        uiManager.loginConfirmButton = namePanel.transform.Find("LoginConfirmButton") != null
+                            ? namePanel.transform.Find("LoginConfirmButton").GetComponent<Button>() : null;
+                        uiManager.loginBackButton = namePanel.transform.Find("LoginBackButton") != null
+                            ? namePanel.transform.Find("LoginBackButton").GetComponent<Button>() : null;
+                    }
                     // Remove stale PlayerNameInput from StartScreen if it exists
                     if (uiManager.startScreen != null)
                     {
@@ -1091,6 +1218,25 @@ public static class DeliveryGameSetup
             gm   = existingGM.GetComponent<GameManager>();
         }
 
+        // Auth system
+        if (gmGO.GetComponent<AuthManager>() == null)
+            gmGO.AddComponent<AuthManager>();
+
+        // WebGLAuthProvider must be on a GO named "WebGLAuthProvider" for jslib SendMessage
+        var webGLAuthGO = FindRoot("WebGLAuthProvider");
+        if (webGLAuthGO == null)
+        {
+            webGLAuthGO = new GameObject("WebGLAuthProvider");
+            webGLAuthGO.AddComponent<WebGLAuthProvider>();
+        }
+        else if (webGLAuthGO.GetComponent<WebGLAuthProvider>() == null)
+        {
+            webGLAuthGO.AddComponent<WebGLAuthProvider>();
+        }
+        // Remove stale WebGLAuthProvider from GameManager if present
+        var staleProvider = gmGO.GetComponent<WebGLAuthProvider>();
+        if (staleProvider != null) Object.DestroyImmediate(staleProvider);
+
         // Always re-wire serialized references (survives script updates)
         if (gm != null)
         {
@@ -1348,20 +1494,20 @@ public static class DeliveryGameSetup
         var loginGO = MakeFullScreenPanel(canvasGO, "LoginScreen", new Color(0.05f, 0.06f, 0.13f, 0.97f));
 
         var loginTitleTxt = MakeTMP(loginGO, "LoginTitle", "DELIVERY DASH", 72, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 100), new Vector2(0, 190));
+            new Vector2(0.08f, 0.70f), new Vector2(0.92f, 0.88f), Vector2.zero, Vector2.zero);
         loginTitleTxt.fontStyle = FontStyles.Bold;
         loginTitleTxt.color = new Color(0f, 0.85f, 1f);
 
         var loginSubtitleTxt = MakeTMP(loginGO, "LoginSubtitle", "Enter your nickname", 28, TextAlignmentOptions.Center,
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 40), new Vector2(0, 60));
+            new Vector2(0.15f, 0.55f), new Vector2(0.85f, 0.63f), Vector2.zero, Vector2.zero);
         loginSubtitleTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         // PlayerNameInput
         var inputGO = new GameObject("PlayerNameInput", typeof(RectTransform));
         inputGO.transform.SetParent(loginGO.transform, false);
         var inputRT = (RectTransform)inputGO.transform;
-        inputRT.anchorMin = new Vector2(0.20f, 0.42f);
-        inputRT.anchorMax = new Vector2(0.80f, 0.50f);
+        inputRT.anchorMin = new Vector2(0.20f, 0.43f);
+        inputRT.anchorMax = new Vector2(0.80f, 0.53f);
         inputRT.offsetMin = inputRT.offsetMax = Vector2.zero;
         var inputImg = inputGO.AddComponent<UnityEngine.UI.Image>();
         inputImg.color = new Color(0.15f, 0.17f, 0.25f, 1f);
@@ -1406,8 +1552,25 @@ public static class DeliveryGameSetup
         tmpInput.pointSize = 26;
 
         var loginConfirmBtn = MakeButton(loginGO, "LoginConfirmButton", "CONFIRM",
-            new Vector2(0.30f, 0.30f), new Vector2(0.70f, 0.38f), Vector2.zero, Vector2.zero);
+            new Vector2(0.22f, 0.30f), new Vector2(0.78f, 0.40f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(loginConfirmBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
+
+        // "or" divider text
+        var orTxt = MakeTMP(loginGO, "OrDivider", "— or —", 22, TextAlignmentOptions.Center,
+            new Vector2(0.30f, 0.35f), new Vector2(0.70f, 0.41f), Vector2.zero, Vector2.zero);
+        orTxt.color = new Color(0.5f, 0.55f, 0.7f, 0.7f);
+
+        var googleBtn = MakeButton(loginGO, "GoogleSignInButton", "Sign in with Google",
+            new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.52f), Vector2.zero, Vector2.zero);
+        ApplyButtonColor(googleBtn, new Color(0.85f, 0.30f, 0.25f), new Color(0.95f, 0.40f, 0.35f), new Color(0.70f, 0.22f, 0.18f));
+
+        var guestBtn = MakeButton(loginGO, "GuestSignInButton", "Play as Guest",
+            new Vector2(0.22f, 0.24f), new Vector2(0.78f, 0.34f), Vector2.zero, Vector2.zero);
+        ApplyButtonColor(guestBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
+
+        var authStatusTxt = MakeTMP(loginGO, "AuthStatusText", "", 18, TextAlignmentOptions.Center,
+            new Vector2(0.15f, 0.14f), new Vector2(0.85f, 0.22f), Vector2.zero, Vector2.zero);
+        authStatusTxt.color = new Color(0.7f, 0.75f, 0.9f, 0.8f);
 
         // ── Level Fail Screen ─────────────────────────────────────────────────
         var gameOverGO = MakeFullScreenPanel(canvasGO, "GameOverScreen", new Color(0.08f, 0.05f, 0.12f, 0.93f));
@@ -2050,9 +2213,29 @@ public static class DeliveryGameSetup
         uiManager.loginSubtitleText = loginSubtitleTxt;
         uiManager.playerNameInput = tmpInput;
         uiManager.loginConfirmButton = loginConfirmBtn;
+        uiManager.googleSignInButton = googleBtn;
+        uiManager.guestSignInButton = guestBtn;
+        uiManager.authStatusText = authStatusTxt;
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
+
+    static void MoveChildIfExists(GameObject from, string childName, GameObject to)
+    {
+        var t = from.transform.Find(childName);
+        if (t != null) t.SetParent(to.transform, false);
+    }
+
+    static void RepositionAnchors(GameObject parent, string childName, Vector2 anchorMin, Vector2 anchorMax)
+    {
+        var t = parent.transform.Find(childName);
+        if (t == null) return;
+        var rt = t.GetComponent<RectTransform>();
+        if (rt == null) return;
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.offsetMin = rt.offsetMax = Vector2.zero;
+    }
 
     static void ApplyButtonColor(Button btn, Color normal, Color highlighted, Color pressed)
     {

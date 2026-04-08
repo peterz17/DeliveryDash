@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>{{{ PRODUCT_NAME }}}</title>
+  <style>
+    * { margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    #unity-container { width: 100%; height: 100%; }
+    #unity-canvas { width: 100%; height: 100%; background: #231f20; }
+    #unity-loading-bar { display: none; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+    #unity-progress-bar-empty { width: 220px; height: 14px; background: #333; border-radius: 7px; overflow: hidden; }
+    #unity-progress-bar-full { width: 0%; height: 100%; background: #00ccff; transition: width 0.15s; }
+  </style>
+
+  <!-- Firebase compat SDK (required by FirebaseAuth.jslib) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+  <script>
+    // Initialize Firebase — replace with your project's config
+    firebase.initializeApp({
+      apiKey: "AIzaSyBvvguczK4SyTild97wO4s31F_y9lmjvgw",
+      authDomain: "deliverydash-b47d0.firebaseapp.com",
+      projectId: "deliverydash-b47d0",
+      storageBucket: "deliverydash-b47d0.appspot.com",
+      messagingSenderId: "",
+      appId: ""
+    });
+  </script>
+</head>
+<body>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{{ LOADER_FILENAME }}}"></script>
+  <script>
+    var container = document.getElementById("unity-container");
+    var canvas = document.getElementById("unity-canvas");
+    var loadingBar = document.getElementById("unity-loading-bar");
+    var progressBarFull = document.getElementById("unity-progress-bar-full");
+
+    createUnityInstance(canvas, {
+      dataUrl: "{{{ DATA_FILENAME }}}",
+      frameworkUrl: "{{{ FRAMEWORK_FILENAME }}}",
+#if USE_WASM
+      codeUrl: "{{{ CODE_FILENAME }}}",
+#endif
+#if MEMORY_FILENAME
+      memoryUrl: "{{{ MEMORY_FILENAME }}}",
+#endif
+#if SYMBOLS_FILENAME
+      symbolsUrl: "{{{ SYMBOLS_FILENAME }}}",
+#endif
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "{{{ COMPANY_NAME }}}",
+      productName: "{{{ PRODUCT_NAME }}}",
+      productVersion: "{{{ PRODUCT_VERSION }}}",
+      showBanner: function(msg, type) { console.log("[Unity] " + type + ": " + msg); },
+    }, function(progress) {
+      loadingBar.style.display = "block";
+      progressBarFull.style.width = (100 * progress) + "%";
+      if (progress >= 1) loadingBar.style.display = "none";
+    }).then(function(instance) {
+      window.unityInstance = instance;
+      canvas.focus();
+    }).catch(function(message) {
+      alert(message);
+    });
+  </script>
+</body>
+</html>

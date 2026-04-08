@@ -116,6 +116,12 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI loginSubtitleText;
     public TMP_InputField playerNameInput;
     public Button loginConfirmButton;
+    public Button googleSignInButton;
+    public Button guestSignInButton;
+    public TextMeshProUGUI authStatusText;
+    public GameObject loginAuthPanel;
+    public GameObject loginNamePanel;
+    public Button loginBackButton;
 
     [Header("Localizable Static Texts")]
     public TextMeshProUGUI startTitleText;
@@ -210,6 +216,9 @@ public class UIManager : MonoBehaviour
             });
         }
         Bind(loginConfirmButton, () => ConfirmLogin());
+        Bind(googleSignInButton, () => GoogleSignIn());
+        Bind(guestSignInButton, () => GuestSignIn());
+        Bind(loginBackButton, () => ShowLoginAuthPhase());
         Bind(settingsButton,            () => ShowSettingsScreen());
         Bind(startSettingsButton,       () => ShowSettingsScreen());
         Bind(hudSettingsButton,         () => GM(g => g.PauseGame()));
@@ -257,6 +266,7 @@ public class UIManager : MonoBehaviour
         LocalizationManager.OnLanguageChanged += RefreshLocalization;
         PowerUpManager.OnPowerUpActivated   += HandlePowerUpActivated;
         PowerUpManager.OnPowerUpDeactivated += HandlePowerUpDeactivated;
+        AuthManager.OnAuthSessionExpired    += HandleSessionExpired;
     }
 
     void OnDisable()
@@ -264,6 +274,14 @@ public class UIManager : MonoBehaviour
         LocalizationManager.OnLanguageChanged -= RefreshLocalization;
         PowerUpManager.OnPowerUpActivated   -= HandlePowerUpActivated;
         PowerUpManager.OnPowerUpDeactivated -= HandlePowerUpDeactivated;
+        AuthManager.OnAuthSessionExpired    -= HandleSessionExpired;
+    }
+
+    void HandleSessionExpired()
+    {
+        ShowLoginScreen();
+        if (authStatusText != null)
+            authStatusText.text = LocalizationManager.L("auth_session_expired", "Session expired. Please sign in again.");
     }
 
     public void ShowStartScreen()
@@ -280,8 +298,26 @@ public class UIManager : MonoBehaviour
     public void ShowLoginScreen()
     {
         SetAllScreens(login: true);
+        ShowLoginAuthPhase();
+    }
+
+    void ShowLoginAuthPhase()
+    {
+        if (loginAuthPanel != null) loginAuthPanel.SetActive(true);
+        if (loginNamePanel != null) loginNamePanel.SetActive(false);
+        if (authStatusText != null) authStatusText.text = "";
+    }
+
+    void ShowLoginNamePhase()
+    {
+        if (loginAuthPanel != null) loginAuthPanel.SetActive(false);
+        if (loginNamePanel != null) loginNamePanel.SetActive(true);
         if (playerNameInput != null)
-            playerNameInput.text = LeaderboardManager.GetPlayerName() == "Player" ? "" : LeaderboardManager.GetPlayerName();
+        {
+            string saved = LeaderboardManager.GetPlayerName();
+            playerNameInput.text = saved == "Player" ? "" : saved;
+            playerNameInput.ActivateInputField();
+        }
     }
 
     void ConfirmLogin()
@@ -289,7 +325,49 @@ public class UIManager : MonoBehaviour
         string name = playerNameInput != null ? playerNameInput.text.Trim() : "";
         if (string.IsNullOrEmpty(name)) return;
         LeaderboardManager.SetPlayerName(name);
+
+        if (AuthManager.Instance != null && !AuthManager.Instance.IsAuthenticated)
+            AuthManager.Instance.SignInAnonymous();
+
         SetAllScreens(start: true);
+    }
+
+    void GoogleSignIn()
+    {
+#if !UNITY_WEBGL || UNITY_EDITOR
+        if (authStatusText != null)
+            authStatusText.text = LocalizationManager.L("auth_webgl_only", "Google Sign-In is only available in the web version.");
+        return;
+#else
+        if (authStatusText != null)
+            authStatusText.text = LocalizationManager.L("auth_signing_in", "Signing in...");
+
+        if (WebGLAuthProvider.Instance != null)
+        {
+            WebGLAuthProvider.Instance.SignIn(
+                (idToken, refreshToken) =>
+                {
+                    string googleName = AuthManager.Instance != null ? AuthManager.Instance.DisplayName : "";
+                    if (!string.IsNullOrEmpty(googleName))
+                        LeaderboardManager.SetPlayerName(googleName);
+                    SetAllScreens(start: true);
+                },
+                error =>
+                {
+                    if (authStatusText == null) return;
+                    if (error != null && error.Contains("cancelled"))
+                        authStatusText.text = LocalizationManager.L("auth_cancelled", "Sign-in cancelled.");
+                    else
+                        authStatusText.text = LocalizationManager.L("auth_error", "Sign-in failed. Try again.");
+                }
+            );
+        }
+#endif
+    }
+
+    void GuestSignIn()
+    {
+        ShowLoginNamePhase();
     }
 
     public void ShowModeSelectScreen()
@@ -1154,6 +1232,9 @@ public class UIManager : MonoBehaviour
 
         // Button labels
         SetButtonLabel(loginConfirmButton,       "btn_confirm");
+        SetButtonLabel(googleSignInButton,       "auth_google");
+        SetButtonLabel(guestSignInButton,        "auth_guest");
+        SetButtonLabel(loginBackButton,          "btn_back");
         SetButtonLabel(startButton,              "btn_start");
         SetButtonLabel(retryButton,              "btn_retry");
         SetButtonLabel(nextLevelButton,          "btn_go_next");

@@ -67,8 +67,14 @@ public static class FirestoreLeaderboard
 
     static IEnumerator UploadCoroutine(LeaderboardEntry entry, GameObject runner)
     {
+        yield return DoUpload(entry, runner, retried: false);
+    }
+
+    static IEnumerator DoUpload(LeaderboardEntry entry, GameObject runner, bool retried)
+    {
         string url = BASE_URL + "/LeaderBoard";
 
+        string uid = AuthManager.Instance != null ? AuthManager.Instance.UserId : "";
         string json = "{\"fields\":{"
             + "\"name\":{\"stringValue\":\"" + Esc(entry.playerName) + "\"},"
             + "\"coin\":{\"integerValue\":\"" + entry.score + "\"},"
@@ -76,6 +82,7 @@ public static class FirestoreLeaderboard
             + "\"level\":{\"integerValue\":\"" + entry.level + "\"},"
             + "\"deliveries\":{\"integerValue\":\"" + entry.deliveries + "\"},"
             + "\"carType\":{\"stringValue\":\"" + Esc(entry.carId) + "\"},"
+            + "\"uid\":{\"stringValue\":\"" + Esc(uid) + "\"},"
             + "\"updatedAt\":{\"stringValue\":\"" + DateTime.UtcNow.ToString("o") + "\"}"
             + "}}";
 
@@ -83,13 +90,35 @@ public static class FirestoreLeaderboard
         request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
+        AddAuthHeader(request);
 
         yield return request.SendWebRequest();
 
         if (request.result == UnityWebRequest.Result.Success)
+        {
             Debug.Log("[Firestore] Created: " + entry.playerName + " score=" + entry.score + " mode=" + entry.mode);
+        }
+        else if (!retried && request.responseCode == 401 && AuthManager.Instance != null)
+        {
+            Debug.Log("[Firestore] Got 401, refreshing token and retrying...");
+            request.Dispose();
+            bool refreshDone = false;
+            bool refreshOk = false;
+            AuthManager.Instance.RefreshToken(
+                () => { refreshOk = true; refreshDone = true; },
+                _ => { refreshDone = true; }
+            );
+            while (!refreshDone) yield return null;
+            if (refreshOk)
+                yield return DoUpload(entry, runner, retried: true);
+            else
+                Debug.LogWarning("[Firestore] Token refresh failed, upload aborted");
+            yield break;
+        }
         else
+        {
             Debug.LogWarning("[Firestore] Upload failed: " + request.error + " " + request.downloadHandler.text);
+        }
 
         request.Dispose();
         UnityEngine.Object.Destroy(runner);
@@ -198,6 +227,7 @@ public static class FirestoreLeaderboard
             entry.level = ExtractInt(doc, "level");
             entry.deliveries = ExtractInt(doc, "deliveries");
             entry.carId = ExtractString(doc, "carType");
+            entry.uid = ExtractString(doc, "uid");
             string ts = ExtractString(doc, "updatedAt");
             entry.date = !string.IsNullOrEmpty(ts) && ts.Length >= 10 ? ts.Substring(0, 10) : "";
 
@@ -228,6 +258,12 @@ public static class FirestoreLeaderboard
         if (end <= idx) return 0;
         int.TryParse(doc.Substring(idx, end - idx), out int val);
         return val;
+    }
+
+    static void AddAuthHeader(UnityWebRequest request)
+    {
+        if (AuthManager.Instance != null && AuthManager.Instance.IsAuthenticated)
+            request.SetRequestHeader("Authorization", "Bearer " + AuthManager.Instance.IdToken);
     }
 
     static string Esc(string s)

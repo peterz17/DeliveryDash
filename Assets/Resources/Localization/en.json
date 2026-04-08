@@ -140,6 +140,14 @@
     { "key": "player_name_placeholder", "value": "Enter name..." },
     { "key": "login_title",           "value": "DELIVERY DASH" },
     { "key": "login_subtitle",        "value": "Enter your nickname" },
-    { "key": "btn_confirm",           "value": "CONFIRM" }
+    { "key": "btn_confirm",           "value": "CONFIRM" },
+    { "key": "auth_google",           "value": "Sign in with Google" },
+    { "key": "auth_guest",            "value": "Play as Guest" },
+    { "key": "auth_signing_in",       "value": "Signing in..." },
+    { "key": "auth_error",            "value": "Sign-in failed. Try again." },
+    { "key": "auth_signed_in",        "value": "Signed in as {0}" },
+    { "key": "auth_cancelled",        "value": "Sign-in cancelled." },
+    { "key": "auth_webgl_only",       "value": "Google Sign-In is only available in the web version." },
+    { "key": "auth_session_expired",  "value": "Session expired. Please sign in again." }
   ]
 }
