@@ -87,6 +87,8 @@ public class UIManager : MonoBehaviour
     public Button modeBackToStartButton;
     public Slider zoneLabelOpacitySlider;
     public TextMeshProUGUI zoneLabelOpacityLabel;
+    public Button googleLinkButton;
+    public TextMeshProUGUI googleLinkStatusText;
 
     [Header("Car Select")]
     public GameObject carSelectScreen;
@@ -223,6 +225,7 @@ public class UIManager : MonoBehaviour
         Bind(startSettingsButton,       () => ShowSettingsScreen());
         Bind(hudSettingsButton,         () => GM(g => g.PauseGame()));
         Bind(closeSettingsButton,       () => HideSettingsScreen());
+        Bind(googleLinkButton,          () => LinkGoogleAccount());
         Bind(languageButton,            () => { if (LocalizationManager.Instance != null) LocalizationManager.Instance.ToggleLanguage(); UpdateLanguageButtonText(); });
         if (volumeSlider != null)
         {
@@ -355,31 +358,28 @@ public class UIManager : MonoBehaviour
 
     void GoogleSignIn()
     {
-#if !UNITY_WEBGL || UNITY_EDITOR
-        if (authStatusText != null)
-            authStatusText.text = LocalizationManager.L("auth_webgl_only", "Google Sign-In is only available in the web version.");
-        return;
-#else
         if (authStatusText != null)
             authStatusText.text = LocalizationManager.L("auth_signing_in", "Signing in...");
 
+#if UNITY_EDITOR
+        // Editor: use dev refresh token
+        if (AuthManager.Instance != null)
+        {
+            AuthManager.Instance.EditorDevSignIn(
+                () => OnGoogleSignInComplete(),
+                error =>
+                {
+                    if (authStatusText != null)
+                        authStatusText.text = LocalizationManager.L("auth_error", "Sign-in failed. Try again.");
+                }
+            );
+        }
+#elif UNITY_WEBGL
         Debug.Log("[UI] GoogleSignIn: WebGLAuthProvider.Instance=" + (WebGLAuthProvider.Instance != null));
         if (WebGLAuthProvider.Instance != null)
         {
             WebGLAuthProvider.Instance.SignIn(
-                (idToken, refreshToken) =>
-                {
-                    Debug.Log("[UI] GoogleSignIn SUCCESS callback fired");
-                    _profileSynced = true;
-                    FirestoreUserProfile.SyncOnLogin(() =>
-                    {
-                        string savedName = LeaderboardManager.GetPlayerName();
-                        if (savedName == "Player" || string.IsNullOrEmpty(savedName))
-                            ShowLoginNamePhase();
-                        else
-                            SetAllScreens(start: true);
-                    });
-                },
+                (idToken, refreshToken) => OnGoogleSignInComplete(),
                 error =>
                 {
                     if (authStatusText == null) return;
@@ -390,7 +390,26 @@ public class UIManager : MonoBehaviour
                 }
             );
         }
+#else
+        if (authStatusText != null)
+            authStatusText.text = LocalizationManager.L("auth_webgl_only", "Google Sign-In is only available in the web version.");
 #endif
+    }
+
+    void OnGoogleSignInComplete()
+    {
+        Debug.Log("[UI] GoogleSignIn SUCCESS");
+        _profileSynced = true;
+        if (authStatusText != null)
+            authStatusText.text = LocalizationManager.L("auth_syncing", "Loading profile...");
+        FirestoreUserProfile.SyncOnLogin(() =>
+        {
+            string savedName = LeaderboardManager.GetPlayerName();
+            if (savedName == "Player" || string.IsNullOrEmpty(savedName))
+                ShowLoginNamePhase();
+            else
+                SetAllScreens(start: true);
+        });
     }
 
     void GuestSignIn()
@@ -1047,11 +1066,84 @@ public class UIManager : MonoBehaviour
     public void ShowSettingsScreen()
     {
         if (settingsScreen != null) settingsScreen.SetActive(true);
+        UpdateGoogleLinkStatus();
     }
 
     public void HideSettingsScreen()
     {
         if (settingsScreen != null) settingsScreen.SetActive(false);
+    }
+
+    void UpdateGoogleLinkStatus()
+    {
+        bool isGoogle = AuthManager.Instance != null && AuthManager.Instance.Provider == AuthProviderType.Google;
+
+        if (googleLinkButton != null)
+        {
+            googleLinkButton.interactable = !isGoogle;
+            var btnText = googleLinkButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (btnText != null)
+                btnText.text = isGoogle
+                    ? LocalizationManager.L("settings_google_linked", "Google Account Linked")
+                    : LocalizationManager.L("settings_google_link", "Link Google Account");
+        }
+
+        if (googleLinkStatusText != null)
+        {
+            if (isGoogle)
+            {
+                string email = AuthManager.Instance.Email;
+                googleLinkStatusText.text = !string.IsNullOrEmpty(email) ? email : AuthManager.Instance.DisplayName;
+            }
+            else
+            {
+                googleLinkStatusText.text = "";
+            }
+        }
+    }
+
+    void LinkGoogleAccount()
+    {
+        if (googleLinkStatusText != null)
+            googleLinkStatusText.text = LocalizationManager.L("auth_signing_in", "Signing in...");
+
+        System.Action onSuccess = () =>
+        {
+            string email = AuthManager.Instance != null ? AuthManager.Instance.Email : "";
+            FirestoreUserProfile.CheckProviderAvailable("Google", email, available =>
+            {
+                if (!available)
+                {
+                    if (googleLinkStatusText != null)
+                        googleLinkStatusText.text = LocalizationManager.L("auth_email_exists",
+                            "This Google account is already linked to another player.");
+                    AuthManager.Instance.SignOut();
+                    return;
+                }
+                _profileSynced = true;
+                FirestoreUserProfile.SyncOnLogin(() => UpdateGoogleLinkStatus());
+            });
+        };
+
+        System.Action<string> onError = error =>
+        {
+            if (googleLinkStatusText == null) return;
+            if (error != null && error.Contains("cancelled"))
+                googleLinkStatusText.text = LocalizationManager.L("auth_cancelled", "Sign-in cancelled.");
+            else
+                googleLinkStatusText.text = LocalizationManager.L("auth_error", "Sign-in failed. Try again.");
+        };
+
+#if UNITY_EDITOR
+        if (AuthManager.Instance != null)
+            AuthManager.Instance.EditorDevSignIn(() => onSuccess(), error => onError(error));
+#elif UNITY_WEBGL
+        if (WebGLAuthProvider.Instance != null)
+            WebGLAuthProvider.Instance.SignIn((id, rt) => onSuccess(), error => onError(error));
+#else
+        if (googleLinkStatusText != null)
+            googleLinkStatusText.text = LocalizationManager.L("auth_webgl_only", "Google Sign-In is only available in the web version.");
+#endif
     }
 
     // ── Leaderboard ─────────────────────────────────────────────────────
@@ -1273,6 +1365,7 @@ public class UIManager : MonoBehaviour
         SetButtonLabel(settingsButton,           "btn_settings");
         SetButtonLabel(startSettingsButton,      "btn_settings");
         SetButtonLabel(closeSettingsButton,      "btn_close");
+        UpdateGoogleLinkStatus();
         SetButtonLabel(rushModeButton,           "mode_rush");
         SetButtonLabel(heartModeButton,         "mode_heart");
         SetButtonLabel(endlessModeButton,        "mode_endless");

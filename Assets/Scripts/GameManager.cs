@@ -84,6 +84,15 @@ public class GameManager : MonoBehaviour
         _                     => "Unlocked_Normal"
     };
 
+    static string[] CloudFields(GameMode mode) => mode switch
+    {
+        GameMode.Rush         => new[] { "coins", "unlockedRush", "bestScoreRush" },
+        GameMode.HeartExtreme => new[] { "coins", "unlockedHeartExtreme", "bestScoreHeartExtreme" },
+        GameMode.RushExtreme  => new[] { "coins", "unlockedRushExtreme", "bestScoreRushExtreme" },
+        GameMode.Endless      => new[] { "coins", "bestScoreEndless", "bestTierEndless", "endlessTier10Count" },
+        _                     => new[] { "coins", "unlockedHeart", "bestScoreHeart" }
+    };
+
     public static int GetUnlockedLevel(GameMode mode)
     {
         return PlayerPrefs.GetInt(UnlockKey(mode), 0);
@@ -99,7 +108,6 @@ public class GameManager : MonoBehaviour
         {
             PlayerPrefs.SetInt(key, score);
             PlayerPrefs.Save();
-            FirestoreUserProfile.QueueSave();
         }
     }
 
@@ -112,7 +120,6 @@ public class GameManager : MonoBehaviour
         {
             PlayerPrefs.SetInt("BestTier_Endless", tier);
             PlayerPrefs.Save();
-            FirestoreUserProfile.QueueSave();
         }
     }
 
@@ -123,7 +130,6 @@ public class GameManager : MonoBehaviour
         {
             PlayerPrefs.SetInt(key, levelIndex);
             PlayerPrefs.Save();
-            FirestoreUserProfile.QueueSave();
         }
     }
 
@@ -134,7 +140,6 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("Coins", Coins + amount);
         PlayerPrefs.Save();
-        FirestoreUserProfile.QueueSave();
     }
 
     public bool IsCarUnlocked(CarData car)
@@ -188,7 +193,6 @@ public class GameManager : MonoBehaviour
     {
         PlayerPrefs.SetInt("EndlessTier10Count", GetEndlessTier10Count() + 1);
         PlayerPrefs.Save();
-        FirestoreUserProfile.QueueSave();
     }
 
     public bool TryUnlockCar(CarData car)
@@ -198,7 +202,7 @@ public class GameManager : MonoBehaviour
         AddCoins(-car.unlockCost);
         PlayerPrefs.SetInt("CarUnlocked_" + car.carId, 1);
         PlayerPrefs.Save();
-        FirestoreUserProfile.QueueSave();
+        FirestoreUserProfile.QueueSave("coins", "unlockedCars");
         return true;
     }
 
@@ -208,7 +212,7 @@ public class GameManager : MonoBehaviour
         selectedCar = car;
         PlayerPrefs.SetString("SelectedCar", car.carId);
         PlayerPrefs.Save();
-        FirestoreUserProfile.QueueSave();
+        FirestoreUserProfile.QueueSave("selectedCar");
         OnCarChanged?.Invoke();
     }
 
@@ -218,7 +222,7 @@ public class GameManager : MonoBehaviour
         foreach (var car in carCatalog)
             if (car != null) PlayerPrefs.SetInt("CarUnlocked_" + car.carId, 1);
         PlayerPrefs.Save();
-        FirestoreUserProfile.QueueSave();
+        FirestoreUserProfile.QueueSave("unlockedCars");
     }
 
     public void ResetAllCars()
@@ -235,7 +239,7 @@ public class GameManager : MonoBehaviour
         if (carCatalog.Length > 0 && carCatalog[0] != null)
             SelectCar(carCatalog[0]);
         PlayerPrefs.Save();
-        FirestoreUserProfile.QueueSave();
+        FirestoreUserProfile.QueueSave("coins", "unlockedCars", "selectedCar", "endlessTier10Count");
     }
 
     public void LoadSelectedCar()
@@ -476,6 +480,7 @@ public class GameManager : MonoBehaviour
         {
             SaveBestScore(GameMode.Endless, Score);
             SaveBestEndlessTier(endlessTier + 1);
+            FirestoreUserProfile.QueueSave(CloudFields(GameMode.Endless));
             uiManager.ShowEndlessSummary(Score, endlessTier + 1, deliveryCount,
                 GetBestScore(GameMode.Endless), GetBestEndlessTier());
             return;
@@ -491,16 +496,19 @@ public class GameManager : MonoBehaviour
         if (!passed)
         {
             SaveBestScore(CurrentMode, Score);
+            FirestoreUserProfile.QueueSave(CloudFields(CurrentMode));
             uiManager.ShowLevelFail(Score, needed, CurrentLevel, GetBestScore(CurrentMode));
         }
         else if (!isLast)
         {
             SaveBestScore(CurrentMode, Score);
+            FirestoreUserProfile.QueueSave(CloudFields(CurrentMode));
             uiManager.ShowLevelComplete(Score, CurrentLevel + 1, GetBestScore(CurrentMode));
         }
         else
         {
             SaveBestScore(CurrentMode, Score);
+            FirestoreUserProfile.QueueSave(CloudFields(CurrentMode));
             uiManager.ShowVictory(Score, GetBestScore(CurrentMode));
         }
     }
@@ -683,6 +691,7 @@ public class GameManager : MonoBehaviour
         RecordLeaderboardEntry();
         SaveBestScore(CurrentMode, Score);
         SaveUnlockedLevel(CurrentMode, currentLevel + 1);
+        FirestoreUserProfile.QueueSave(CloudFields(CurrentMode));
         currentLevel++;
         UpdateNPCSprites();
         StartGame();

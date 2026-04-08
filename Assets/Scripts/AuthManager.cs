@@ -13,6 +13,7 @@ public class AuthManager : MonoBehaviour
     public string UserId { get; private set; } = "";
     public string IdToken { get; private set; } = "";
     public string DisplayName { get; private set; } = "";
+    public string Email { get; private set; } = "";
     public AuthProviderType Provider { get; private set; } = AuthProviderType.Guest;
     public bool IsAuthenticated => !string.IsNullOrEmpty(IdToken);
 
@@ -24,6 +25,11 @@ public class AuthManager : MonoBehaviour
 
     string _refreshToken = "";
     Coroutine _refreshCoroutine;
+
+#if UNITY_EDITOR
+    [Header("Editor Dev — paste refresh token from WebGL localStorage")]
+    [SerializeField] string editorDevRefreshToken = "";
+#endif
 
     void Awake()
     {
@@ -49,11 +55,12 @@ public class AuthManager : MonoBehaviour
         StartCoroutine(AnonymousAuthCoroutine(onSuccess, onError));
     }
 
-    public void SignInWithIdToken(string idToken, string refreshToken, string displayName, AuthProviderType provider)
+    public void SignInWithIdToken(string idToken, string refreshToken, string displayName, string email, AuthProviderType provider)
     {
         IdToken = idToken;
         _refreshToken = refreshToken;
         DisplayName = displayName;
+        Email = email;
         Provider = provider;
 
         // Parse UID from JWT
@@ -62,7 +69,8 @@ public class AuthManager : MonoBehaviour
         SaveAuthState();
         StartTokenRefreshLoop();
         OnAuthStateChanged?.Invoke();
-        Debug.Log("[Auth] Signed in as " + Provider + " uid=" + UserId + " name=" + DisplayName);
+        Debug.Log("[Auth] Signed in as " + Provider + " uid=" + UserId + " name=" + DisplayName + " email=" + Email);
+        Debug.Log("[Auth] RefreshToken for Editor: " + _refreshToken);
     }
 
     public void SignOut()
@@ -71,11 +79,13 @@ public class AuthManager : MonoBehaviour
         _refreshToken = "";
         UserId = "";
         DisplayName = "";
+        Email = "";
         Provider = AuthProviderType.Guest;
 
         PlayerPrefs.DeleteKey("AuthRefreshToken");
         PlayerPrefs.DeleteKey("AuthProvider");
         PlayerPrefs.DeleteKey("AuthDisplayName");
+        PlayerPrefs.DeleteKey("AuthEmail");
         PlayerPrefs.Save();
 
         if (_refreshCoroutine != null) StopCoroutine(_refreshCoroutine);
@@ -142,6 +152,7 @@ public class AuthManager : MonoBehaviour
             _refreshToken = ExtractJsonString(resp, "refresh_token");
             UserId = ExtractJsonString(resp, "user_id");
             DisplayName = PlayerPrefs.GetString("AuthDisplayName", LeaderboardManager.GetPlayerName());
+            Email = PlayerPrefs.GetString("AuthEmail", "");
 
             SaveAuthState();
             StartTokenRefreshLoop();
@@ -158,6 +169,23 @@ public class AuthManager : MonoBehaviour
         }
 
         request.Dispose();
+    }
+
+    public void EditorDevSignIn(Action onSuccess = null, Action<string> onError = null)
+    {
+#if UNITY_EDITOR
+        if (string.IsNullOrEmpty(editorDevRefreshToken))
+        {
+            Debug.LogWarning("[Auth] No editorDevRefreshToken set in Inspector");
+            onError?.Invoke("No dev refresh token");
+            return;
+        }
+        _refreshToken = editorDevRefreshToken;
+        Provider = AuthProviderType.Google;
+        StartCoroutine(RefreshTokenCoroutine(onSuccess, onError));
+#else
+        onError?.Invoke("EditorDevSignIn only works in Editor");
+#endif
     }
 
     public void RefreshToken(Action onSuccess = null, Action<string> onError = null)
@@ -188,6 +216,7 @@ public class AuthManager : MonoBehaviour
         PlayerPrefs.SetString("AuthRefreshToken", _refreshToken);
         PlayerPrefs.SetString("AuthProvider", Provider.ToString());
         PlayerPrefs.SetString("AuthDisplayName", DisplayName);
+        PlayerPrefs.SetString("AuthEmail", Email);
         PlayerPrefs.Save();
     }
 

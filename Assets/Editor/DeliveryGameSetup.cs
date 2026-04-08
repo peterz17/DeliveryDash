@@ -785,6 +785,61 @@ public static class DeliveryGameSetup
                     if (uiManager.endlessDeliveriesText == null)  uiManager.endlessDeliveriesText  = RewireComp<TextMeshProUGUI>("EndlessSummaryScreen/EndlessDelivText");
                     if (uiManager.languageButtonText == null)     uiManager.languageButtonText     = RewireComp<TextMeshProUGUI>("SettingsScreen/SettingsPanel/LanguageButton/Text");
 
+                    // Google Link button in Settings
+                    if (uiManager.settingsScreen != null)
+                    {
+                        var settingsPanel = uiManager.settingsScreen.transform.Find("SettingsPanel");
+                        if (settingsPanel != null)
+                        {
+                            // Resize panel and reposition ALL elements
+                            var spRT = settingsPanel.GetComponent<RectTransform>();
+                            if (spRT != null)
+                                spRT.sizeDelta = new Vector2(spRT.sizeDelta.x, 820);
+
+                            // ── Sliders (top half) ──
+                            RepositionByName(settingsPanel, "SettingsTitle",    new Vector2(0, 286));
+                            RepositionByName(settingsPanel, "VolumeLabel",      new Vector2(0, 230));
+                            RepositionByName(settingsPanel, "VolumeSlider",     new Vector2(0, 198));
+                            RepositionByName(settingsPanel, "BGMLabel",         new Vector2(0, 150));
+                            RepositionByName(settingsPanel, "BGMSlider",        new Vector2(0, 118));
+                            RepositionByName(settingsPanel, "SFXLabel",         new Vector2(0, 70));
+                            RepositionByName(settingsPanel, "SFXSlider",        new Vector2(0, 38));
+                            RepositionByName(settingsPanel, "ZoneLabelLabel",   new Vector2(0, -10));
+                            RepositionByName(settingsPanel, "ZoneLabelSlider",  new Vector2(0, -42));
+
+                            // ── Buttons (bottom half, below sliders) ──
+                            RepositionByName(settingsPanel, "FullscreenButton",    new Vector2(0, -105));
+                            RepositionByName(settingsPanel, "LanguageButton",      new Vector2(0, -170));
+                            RepositionByName(settingsPanel, "GoogleLinkButton",    new Vector2(0, -235));
+                            RepositionByName(settingsPanel, "GoogleLinkStatus",    new Vector2(0, -275));
+                            RepositionByName(settingsPanel, "CloseSettingsButton", new Vector2(0, -330));
+
+                            // Create Google Link button by duplicating LanguageButton
+                            var langT = settingsPanel.Find("LanguageButton");
+                            if (settingsPanel.Find("GoogleLinkButton") == null && langT != null)
+                            {
+                                var glGO = Object.Instantiate(langT.gameObject, settingsPanel);
+                                glGO.name = "GoogleLinkButton";
+                                glGO.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -180);
+                                var glTxt = glGO.GetComponentInChildren<TextMeshProUGUI>();
+                                if (glTxt != null) glTxt.text = "Link Google Account";
+                            }
+                            if (settingsPanel.Find("GoogleLinkStatus") == null)
+                            {
+                                var glStatus = MakeTMP(settingsPanel.gameObject, "GoogleLinkStatus", "", 20, TextAlignmentOptions.Center,
+                                    new Vector2(0.10f, 0.5f), new Vector2(0.90f, 0.5f), new Vector2(0, 28), new Vector2(0, -220));
+                                glStatus.color = new Color(0x5E/255f, 0x35/255f, 0x42/255f, 1f);
+                            }
+
+                            uiManager.googleLinkButton = settingsPanel.Find("GoogleLinkButton") != null
+                                ? settingsPanel.Find("GoogleLinkButton").GetComponent<Button>() : null;
+                            uiManager.googleLinkStatusText = settingsPanel.Find("GoogleLinkStatus") != null
+                                ? settingsPanel.Find("GoogleLinkStatus").GetComponent<TextMeshProUGUI>() : null;
+                            if (uiManager.googleLinkStatusText != null)
+                                uiManager.googleLinkStatusText.color = new Color(0x5E/255f, 0x35/255f, 0x42/255f, 1f);
+                        }
+                    }
+
                     // Always re-apply button colors (non-destructive update)
                     Color cyanN = new Color(0f, 0.75f, 0.85f), cyanH = new Color(0f, 0.90f, 1f), cyanP = new Color(0f, 0.55f, 0.65f);
                     Color darkN = new Color(0.22f, 0.25f, 0.35f), darkH = new Color(0.32f, 0.38f, 0.52f), darkP = new Color(0.14f, 0.16f, 0.24f);
@@ -1685,7 +1740,7 @@ public static class DeliveryGameSetup
         settingsPanelRT.anchoredPosition = Vector2.zero;
 
         // Panel height to fit all controls
-        settingsPanelRT.sizeDelta = new Vector2(0, 820);
+        settingsPanelRT.sizeDelta = new Vector2(0, 1000);
 
         var settingsTitleTxt = MakeTMP(settingsPanelGO, "SettingsTitle", "Settings", 52, TextAlignmentOptions.Center,
             new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 60), new Vector2(0, 360));
@@ -1803,13 +1858,24 @@ public static class DeliveryGameSetup
 
         // Language button
         var langBtnGO = MakeButton(settingsPanelGO, "LanguageButton", "Language: EN",
-            new Vector2(0.2f, 0.5f), new Vector2(0.8f, 0.5f), new Vector2(0, 50), new Vector2(0, -140));
+            new Vector2(0.2f, 0.5f), new Vector2(0.8f, 0.5f), new Vector2(0, 50), new Vector2(0, -150));
         ApplyButtonColor(langBtnGO, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var langBtnTxtTMP = langBtnGO.GetComponentInChildren<TextMeshProUGUI>();
 
+        // Google Link button (duplicate Language button style, then reposition)
+        var googleLinkBtnGO = Object.Instantiate(langBtnGO.gameObject, settingsPanelGO.transform).GetComponent<Button>();
+        googleLinkBtnGO.gameObject.name = "GoogleLinkButton";
+        var glRT = googleLinkBtnGO.GetComponent<RectTransform>();
+        glRT.anchoredPosition = new Vector2(0, -240);
+        var glTxt = googleLinkBtnGO.GetComponentInChildren<TextMeshProUGUI>();
+        if (glTxt != null) glTxt.text = "Link Google Account";
+        var googleLinkStatusTxt = MakeTMP(settingsPanelGO, "GoogleLinkStatus", "", 20, TextAlignmentOptions.Center,
+            new Vector2(0.10f, 0.5f), new Vector2(0.90f, 0.5f), new Vector2(0, 28), new Vector2(0, -290));
+        googleLinkStatusTxt.color = Color.white;
+
         // Close button
         var closeSettingsBtnGO = MakeButton(settingsPanelGO, "CloseSettingsButton", "Close",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(180, 56), new Vector2(0, -210));
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(180, 56), new Vector2(0, -350));
         ApplyButtonColor(closeSettingsBtnGO, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         settingsGO.SetActive(false);
@@ -2164,6 +2230,8 @@ public static class DeliveryGameSetup
         uiManager.startSettingsButton    = startSettingsBtn;
         uiManager.hudSettingsButton      = hudSettingsBtn;
         uiManager.closeSettingsButton    = closeSettingsBtnGO;
+        uiManager.googleLinkButton       = googleLinkBtnGO;
+        uiManager.googleLinkStatusText   = googleLinkStatusTxt;
 
         // Localizable static texts
         uiManager.startTitleText       = startTitleTxt;
@@ -2235,6 +2303,15 @@ public static class DeliveryGameSetup
         rt.anchorMin = anchorMin;
         rt.anchorMax = anchorMax;
         rt.offsetMin = rt.offsetMax = Vector2.zero;
+    }
+
+    static void RepositionByName(Transform parent, string childName, Vector2 anchoredPos)
+    {
+        var t = parent.Find(childName);
+        if (t == null) return;
+        var rt = t.GetComponent<RectTransform>();
+        if (rt == null) return;
+        rt.anchoredPosition = anchoredPos;
     }
 
     static void ApplyButtonColor(Button btn, Color normal, Color highlighted, Color pressed)

@@ -149,6 +149,9 @@
     { "key": "auth_cancelled",        "value": "Sign-in cancelled." },
     { "key": "auth_webgl_only",       "value": "Google Sign-In is only available in the web version." },
     { "key": "auth_session_expired",  "value": "Session expired. Please sign in again." },
-    { "key": "auth_syncing",          "value": "Loading profile..." }
+    { "key": "auth_syncing",          "value": "Loading profile..." },
+    { "key": "settings_google_link",   "value": "Link Google Account" },
+    { "key": "settings_google_linked", "value": "Google Account Linked" },
+    { "key": "auth_email_exists",      "value": "This Google account is already linked to another player." }
   ]
 }

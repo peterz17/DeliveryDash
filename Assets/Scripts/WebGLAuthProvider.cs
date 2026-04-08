@@ -57,10 +57,11 @@ public class WebGLAuthProvider : MonoBehaviour, IAuthProvider
         string idToken = ExtractField(json, "idToken");
         string refreshToken = ExtractField(json, "refreshToken");
         string displayName = ExtractField(json, "displayName");
-        Debug.Log("[WebGLAuth] displayName=" + displayName + " hasIdToken=" + !string.IsNullOrEmpty(idToken));
+        string email = ExtractField(json, "email");
+        Debug.Log("[WebGLAuth] displayName=" + displayName + " email=" + email + " hasIdToken=" + !string.IsNullOrEmpty(idToken));
 
         if (AuthManager.Instance != null)
-            AuthManager.Instance.SignInWithIdToken(idToken, refreshToken, displayName, AuthProviderType.Google);
+            AuthManager.Instance.SignInWithIdToken(idToken, refreshToken, displayName, email, AuthProviderType.Google);
         else
             Debug.LogWarning("[WebGLAuth] AuthManager.Instance is null!");
 

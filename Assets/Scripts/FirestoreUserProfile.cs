@@ -9,7 +9,7 @@ using UnityEngine.Networking;
 public class UserProfileData
 {
     public int coins;
-    public int unlockedNormal;
+    public int unlockedHeart;
     public int unlockedRush;
     public int unlockedHeartExtreme;
     public int unlockedRushExtreme;
@@ -23,6 +23,8 @@ public class UserProfileData
     public List<string> unlockedCars = new List<string>();
     public string selectedCar = "";
     public string playerName = "";
+    public string email = "";
+    public List<string> linkedProviders = new List<string>();
 }
 
 public static class FirestoreUserProfile
@@ -34,12 +36,18 @@ public static class FirestoreUserProfile
     static MonoBehaviour _saveRunner;
     static float _saveDelay = 1.5f;
     static bool _syncing;
+    static readonly List<Action> _pendingCallbacks = new List<Action>();
+    static readonly HashSet<string> _dirtyFields = new HashSet<string>();
 
     // ── Public API ─────────────────────────────────────────────────────────
 
     public static void SyncOnLogin(Action onComplete)
     {
-        if (_syncing) { onComplete?.Invoke(); return; }
+        if (_syncing)
+        {
+            if (onComplete != null) _pendingCallbacks.Add(onComplete);
+            return;
+        }
         _syncing = true;
         var go = new GameObject("FirestoreProfileSync");
         go.hideFlags = HideFlags.HideAndDontSave;
@@ -47,9 +55,11 @@ public static class FirestoreUserProfile
         runner.StartCoroutine(SyncCoroutine(onComplete, go));
     }
 
-    public static void QueueSave()
+    public static void QueueSave(params string[] fields)
     {
         if (AuthManager.Instance == null || !AuthManager.Instance.IsAuthenticated) return;
+        foreach (var f in fields) _dirtyFields.Add(f);
+        if (_syncing) return;
         if (_saveRunner == null)
         {
             var go = new GameObject("FirestoreProfileSaver");
@@ -92,6 +102,8 @@ public static class FirestoreUserProfile
             Debug.LogWarning("[Profile] Cloud load failed, using local data");
             _syncing = false;
             onComplete?.Invoke();
+            foreach (var cb in _pendingCallbacks) cb?.Invoke();
+            _pendingCallbacks.Clear();
             UnityEngine.Object.Destroy(runner);
             yield break;
         }
@@ -110,6 +122,9 @@ public static class FirestoreUserProfile
 
         _syncing = false;
         onComplete?.Invoke();
+        foreach (var cb in _pendingCallbacks) cb?.Invoke();
+        _pendingCallbacks.Clear();
+        if (_dirtyFields.Count > 0) QueueSave();
         UnityEngine.Object.Destroy(runner);
     }
 
@@ -121,13 +136,64 @@ public static class FirestoreUserProfile
         _saveCoroutine = null;
 
         string uid = AuthManager.Instance != null ? AuthManager.Instance.UserId : "";
-        if (string.IsNullOrEmpty(uid)) yield break;
+        if (string.IsNullOrEmpty(uid) || _dirtyFields.Count == 0) yield break;
+
+        var fields = new HashSet<string>(_dirtyFields);
+        fields.Add("updatedAt");
+        _dirtyFields.Clear();
 
         var data = ProfileFromLocal();
+        string json = BuildPartialJson(data, fields);
+        string mask = BuildUpdateMask(fields);
+
         var go = new GameObject("FirestoreProfileUpload");
         go.hideFlags = HideFlags.HideAndDontSave;
         var r = go.AddComponent<CoroutineRunner>();
-        r.StartCoroutine(SaveProfileCoroutine(uid, data, go, retried: false, destroyRunner: true));
+        r.StartCoroutine(PatchFieldsCoroutine(uid, json, mask, go));
+    }
+
+    static IEnumerator PatchFieldsCoroutine(string uid, string json, string mask, GameObject runner)
+    {
+        string url = BASE_URL + "/users/" + uid + "?" + mask;
+
+        var request = new UnityWebRequest(url, "PATCH");
+        request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        AddAuthHeader(request);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+            Debug.Log("[Profile] Partial save OK: " + mask);
+        else if (request.responseCode == 401 && AuthManager.Instance != null)
+        {
+            request.Dispose();
+            bool done = false, ok = false;
+            AuthManager.Instance.RefreshToken(() => { ok = true; done = true; }, _ => { done = true; });
+            while (!done) yield return null;
+            if (ok)
+            {
+                var req2 = new UnityWebRequest(BASE_URL + "/users/" + uid + "?" + mask, "PATCH");
+                req2.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
+                req2.downloadHandler = new DownloadHandlerBuffer();
+                req2.SetRequestHeader("Content-Type", "application/json");
+                AddAuthHeader(req2);
+                yield return req2.SendWebRequest();
+                if (req2.result == UnityWebRequest.Result.Success)
+                    Debug.Log("[Profile] Partial save OK (retry): " + mask);
+                else
+                    Debug.LogWarning("[Profile] Partial save failed: " + req2.error);
+                req2.Dispose();
+            }
+            UnityEngine.Object.Destroy(runner);
+            yield break;
+        }
+        else
+            Debug.LogWarning("[Profile] Partial save failed: " + request.error);
+
+        request.Dispose();
+        UnityEngine.Object.Destroy(runner);
     }
 
     // ── Load from Firestore ────────────────────────────────────────────────
@@ -226,7 +292,7 @@ public static class FirestoreUserProfile
     {
         var data = new UserProfileData();
         data.coins = PlayerPrefs.GetInt("Coins", 0);
-        data.unlockedNormal = PlayerPrefs.GetInt("Unlocked_Normal", 0);
+        data.unlockedHeart = PlayerPrefs.GetInt("Unlocked_Normal", 0);
         data.unlockedRush = PlayerPrefs.GetInt("Unlocked_Rush", 0);
         data.unlockedHeartExtreme = PlayerPrefs.GetInt("Unlocked_HeartExtreme", 0);
         data.unlockedRushExtreme = PlayerPrefs.GetInt("Unlocked_RushExtreme", 0);
@@ -239,6 +305,10 @@ public static class FirestoreUserProfile
         data.endlessTier10Count = PlayerPrefs.GetInt("EndlessTier10Count", 0);
         data.selectedCar = PlayerPrefs.GetString("SelectedCar", "");
         data.playerName = PlayerPrefs.GetString("PlayerName", "Player");
+        data.email = AuthManager.Instance != null ? AuthManager.Instance.Email : "";
+        data.linkedProviders = new List<string>();
+        if (AuthManager.Instance != null && AuthManager.Instance.Provider != AuthProviderType.Guest)
+            data.linkedProviders.Add(AuthManager.Instance.Provider.ToString());
 
         data.unlockedCars = new List<string>();
         if (GameManager.Instance != null && GameManager.Instance.carCatalog != null)
@@ -258,8 +328,14 @@ public static class FirestoreUserProfile
 
     public static void ApplyToLocal(UserProfileData data)
     {
+        Debug.Log("[Profile] ApplyToLocal: coins=" + data.coins
+            + " heart=" + data.unlockedHeart
+            + " rush=" + data.unlockedRush
+            + " cars=" + (data.unlockedCars != null ? data.unlockedCars.Count : 0)
+            + " selectedCar=" + data.selectedCar
+            + " name=" + data.playerName);
         PlayerPrefs.SetInt("Coins", data.coins);
-        PlayerPrefs.SetInt("Unlocked_Normal", data.unlockedNormal);
+        PlayerPrefs.SetInt("Unlocked_Normal", data.unlockedHeart);
         PlayerPrefs.SetInt("Unlocked_Rush", data.unlockedRush);
         PlayerPrefs.SetInt("Unlocked_HeartExtreme", data.unlockedHeartExtreme);
         PlayerPrefs.SetInt("Unlocked_RushExtreme", data.unlockedRushExtreme);
@@ -288,6 +364,90 @@ public static class FirestoreUserProfile
             GameManager.Instance.LoadSelectedCar();
     }
 
+    // ── Partial JSON (only dirty fields) ────────────────────────────────────
+
+    static readonly Dictionary<string, System.Func<UserProfileData, string>> FieldBuilders =
+        new Dictionary<string, System.Func<UserProfileData, string>>
+    {
+        ["coins"]                = d => IntField("coins", d.coins),
+        ["unlockedHeart"]        = d => IntField("unlockedHeart", d.unlockedHeart),
+        ["unlockedRush"]         = d => IntField("unlockedRush", d.unlockedRush),
+        ["unlockedHeartExtreme"] = d => IntField("unlockedHeartExtreme", d.unlockedHeartExtreme),
+        ["unlockedRushExtreme"]  = d => IntField("unlockedRushExtreme", d.unlockedRushExtreme),
+        ["bestScoreHeart"]       = d => IntField("bestScoreHeart", d.bestScoreHeart),
+        ["bestScoreRush"]        = d => IntField("bestScoreRush", d.bestScoreRush),
+        ["bestScoreEndless"]     = d => IntField("bestScoreEndless", d.bestScoreEndless),
+        ["bestScoreHeartExtreme"]= d => IntField("bestScoreHeartExtreme", d.bestScoreHeartExtreme),
+        ["bestScoreRushExtreme"] = d => IntField("bestScoreRushExtreme", d.bestScoreRushExtreme),
+        ["bestTierEndless"]      = d => IntField("bestTierEndless", d.bestTierEndless),
+        ["endlessTier10Count"]   = d => IntField("endlessTier10Count", d.endlessTier10Count),
+        ["selectedCar"]          = d => StrField("selectedCar", d.selectedCar),
+        ["playerName"]           = d => StrField("playerName", d.playerName),
+        ["email"]                = d => StrField("email", d.email),
+        ["updatedAt"]            = d => StrField("updatedAt", DateTime.UtcNow.ToString("o")),
+    };
+
+    static string BuildPartialJson(UserProfileData data, HashSet<string> fields)
+    {
+        var sb = new StringBuilder();
+        sb.Append("{\"fields\":{");
+        bool first = true;
+
+        foreach (var f in fields)
+        {
+            // Handle arrays separately
+            if (f == "unlockedCars" || f == "linkedProviders") continue;
+
+            if (FieldBuilders.TryGetValue(f, out var builder))
+            {
+                if (!first) sb.Append(',');
+                sb.Append(builder(data));
+                first = false;
+            }
+        }
+
+        if (fields.Contains("unlockedCars"))
+        {
+            if (!first) sb.Append(',');
+            sb.Append("\"unlockedCars\":{\"arrayValue\":{\"values\":[");
+            if (data.unlockedCars != null)
+                for (int i = 0; i < data.unlockedCars.Count; i++)
+                {
+                    if (i > 0) sb.Append(',');
+                    sb.Append("{\"stringValue\":\"" + Esc(data.unlockedCars[i]) + "\"}");
+                }
+            sb.Append("]}}");
+            first = false;
+        }
+
+        if (fields.Contains("linkedProviders"))
+        {
+            if (!first) sb.Append(',');
+            sb.Append("\"linkedProviders\":{\"arrayValue\":{\"values\":[");
+            if (data.linkedProviders != null)
+                for (int i = 0; i < data.linkedProviders.Count; i++)
+                {
+                    if (i > 0) sb.Append(',');
+                    sb.Append("{\"stringValue\":\"" + Esc(data.linkedProviders[i]) + "\"}");
+                }
+            sb.Append("]}}");
+        }
+
+        sb.Append("}}");
+        return sb.ToString();
+    }
+
+    static string BuildUpdateMask(HashSet<string> fields)
+    {
+        var sb = new StringBuilder();
+        foreach (var f in fields)
+        {
+            if (sb.Length > 0) sb.Append('&');
+            sb.Append("updateMask.fieldPaths=" + f);
+        }
+        return sb.ToString();
+    }
+
     // ── JSON builders (Firestore REST format) ──────────────────────────────
 
     static string BuildProfileJson(UserProfileData data)
@@ -295,7 +455,7 @@ public static class FirestoreUserProfile
         var sb = new StringBuilder();
         sb.Append("{\"fields\":{");
         sb.Append(IntField("coins", data.coins)); sb.Append(",");
-        sb.Append(IntField("unlockedNormal", data.unlockedNormal)); sb.Append(",");
+        sb.Append(IntField("unlockedHeart", data.unlockedHeart)); sb.Append(",");
         sb.Append(IntField("unlockedRush", data.unlockedRush)); sb.Append(",");
         sb.Append(IntField("unlockedHeartExtreme", data.unlockedHeartExtreme)); sb.Append(",");
         sb.Append(IntField("unlockedRushExtreme", data.unlockedRushExtreme)); sb.Append(",");
@@ -308,6 +468,7 @@ public static class FirestoreUserProfile
         sb.Append(IntField("endlessTier10Count", data.endlessTier10Count)); sb.Append(",");
         sb.Append(StrField("selectedCar", data.selectedCar)); sb.Append(",");
         sb.Append(StrField("playerName", data.playerName)); sb.Append(",");
+        sb.Append(StrField("email", data.email)); sb.Append(",");
         sb.Append(StrField("updatedAt", DateTime.UtcNow.ToString("o"))); sb.Append(",");
 
         // Array of unlocked cars
@@ -318,6 +479,18 @@ public static class FirestoreUserProfile
             {
                 if (i > 0) sb.Append(",");
                 sb.Append("{\"stringValue\":\"" + Esc(data.unlockedCars[i]) + "\"}");
+            }
+        }
+        sb.Append("]}},");
+
+        // Array of linked providers
+        sb.Append("\"linkedProviders\":{\"arrayValue\":{\"values\":[");
+        if (data.linkedProviders != null)
+        {
+            for (int i = 0; i < data.linkedProviders.Count; i++)
+            {
+                if (i > 0) sb.Append(",");
+                sb.Append("{\"stringValue\":\"" + Esc(data.linkedProviders[i]) + "\"}");
             }
         }
         sb.Append("]}}");
@@ -334,11 +507,26 @@ public static class FirestoreUserProfile
 
     // ── Parse Firestore document ───────────────────────────────────────────
 
+    static string StripWhitespace(string json)
+    {
+        var sb = new StringBuilder(json.Length);
+        bool inQuote = false;
+        for (int i = 0; i < json.Length; i++)
+        {
+            char ch = json[i];
+            if (ch == '"' && (i == 0 || json[i - 1] != '\\')) inQuote = !inQuote;
+            if (inQuote || (ch != ' ' && ch != '\n' && ch != '\r' && ch != '\t'))
+                sb.Append(ch);
+        }
+        return sb.ToString();
+    }
+
     static UserProfileData ParseProfile(string json)
     {
+        json = StripWhitespace(json);
         var data = new UserProfileData();
         data.coins = ExtractInt(json, "coins");
-        data.unlockedNormal = ExtractInt(json, "unlockedNormal");
+        data.unlockedHeart = ExtractInt(json, "unlockedHeart");
         data.unlockedRush = ExtractInt(json, "unlockedRush");
         data.unlockedHeartExtreme = ExtractInt(json, "unlockedHeartExtreme");
         data.unlockedRushExtreme = ExtractInt(json, "unlockedRushExtreme");
@@ -351,31 +539,10 @@ public static class FirestoreUserProfile
         data.endlessTier10Count = ExtractInt(json, "endlessTier10Count");
         data.selectedCar = ExtractString(json, "selectedCar");
         data.playerName = ExtractString(json, "playerName");
+        data.email = ExtractString(json, "email");
 
-        data.unlockedCars = new List<string>();
-        string arrPattern = "\"unlockedCars\":{\"arrayValue\":{\"values\":[";
-        int arrIdx = json.IndexOf(arrPattern, StringComparison.Ordinal);
-        if (arrIdx >= 0)
-        {
-            arrIdx += arrPattern.Length;
-            int arrEnd = json.IndexOf("]", arrIdx, StringComparison.Ordinal);
-            if (arrEnd > arrIdx)
-            {
-                string arrContent = json.Substring(arrIdx, arrEnd - arrIdx);
-                string valPattern = "\"stringValue\":\"";
-                int pos = 0;
-                while (true)
-                {
-                    int vi = arrContent.IndexOf(valPattern, pos, StringComparison.Ordinal);
-                    if (vi < 0) break;
-                    vi += valPattern.Length;
-                    int ve = arrContent.IndexOf("\"", vi, StringComparison.Ordinal);
-                    if (ve > vi)
-                        data.unlockedCars.Add(arrContent.Substring(vi, ve - vi));
-                    pos = ve + 1;
-                }
-            }
-        }
+        data.unlockedCars = ParseStringArray(json, "unlockedCars");
+        data.linkedProviders = ParseStringArray(json, "linkedProviders");
 
         return data;
     }
@@ -400,6 +567,115 @@ public static class FirestoreUserProfile
         if (end <= idx) return 0;
         int.TryParse(doc.Substring(idx, end - idx), out int val);
         return val;
+    }
+
+    static List<string> ParseStringArray(string json, string fieldName)
+    {
+        var list = new List<string>();
+        string arrPattern = "\"" + fieldName + "\":{\"arrayValue\":{\"values\":[";
+        int arrIdx = json.IndexOf(arrPattern, StringComparison.Ordinal);
+        if (arrIdx < 0) return list;
+        arrIdx += arrPattern.Length;
+        int arrEnd = json.IndexOf("]", arrIdx, StringComparison.Ordinal);
+        if (arrEnd <= arrIdx) return list;
+
+        string arrContent = json.Substring(arrIdx, arrEnd - arrIdx);
+        string valPattern = "\"stringValue\":\"";
+        int pos = 0;
+        while (true)
+        {
+            int vi = arrContent.IndexOf(valPattern, pos, StringComparison.Ordinal);
+            if (vi < 0) break;
+            vi += valPattern.Length;
+            int ve = arrContent.IndexOf("\"", vi, StringComparison.Ordinal);
+            if (ve > vi) list.Add(arrContent.Substring(vi, ve - vi));
+            pos = ve + 1;
+        }
+        return list;
+    }
+
+    // ── Provider-email duplicate check ─────────────────────────────────────
+    // Queries users collection to check if another uid has the same email + provider.
+    // callback: true = available (can link), false = already taken
+
+    public static void CheckProviderAvailable(string provider, string email, Action<bool> callback)
+    {
+        if (string.IsNullOrEmpty(email)) { callback?.Invoke(true); return; }
+        var go = new GameObject("ProviderCheck");
+        go.hideFlags = HideFlags.HideAndDontSave;
+        var runner = go.AddComponent<CoroutineRunner>();
+        runner.StartCoroutine(CheckProviderCoroutine(provider, email, callback, go));
+    }
+
+    static IEnumerator CheckProviderCoroutine(string provider, string email, Action<bool> callback, GameObject runner)
+    {
+        // Firestore structured query: find users where email == given email
+        string url = "https://firestore.googleapis.com/v1/projects/deliverydash-b47d0/databases/(default)/documents:runQuery";
+        string query = "{\"structuredQuery\":{"
+            + "\"from\":[{\"collectionId\":\"users\"}],"
+            + "\"where\":{\"fieldFilter\":{"
+            + "\"field\":{\"fieldPath\":\"email\"},"
+            + "\"op\":\"EQUAL\","
+            + "\"value\":{\"stringValue\":\"" + Esc(email) + "\"}"
+            + "}},"
+            + "\"limit\":10"
+            + "}}";
+
+        var request = new UnityWebRequest(url, "POST");
+        request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(query));
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        AddAuthHeader(request);
+
+        yield return request.SendWebRequest();
+
+        string currentUid = AuthManager.Instance != null ? AuthManager.Instance.UserId : "";
+        bool available = true;
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            string resp = request.downloadHandler.text;
+            // Check each returned user doc for matching provider + different uid
+            var providerPattern = "\"linkedProviders\"";
+            int searchPos = 0;
+            while (true)
+            {
+                // Find next document in the response
+                int docIdx = resp.IndexOf("\"document\":", searchPos, StringComparison.Ordinal);
+                if (docIdx < 0) break;
+
+                // Extract uid from this document's name (path ends with /users/{uid})
+                int nameIdx = resp.IndexOf("\"name\":\"", docIdx, StringComparison.Ordinal);
+                if (nameIdx < 0) break;
+                nameIdx += 8;
+                int nameEnd = resp.IndexOf("\"", nameIdx, StringComparison.Ordinal);
+                string docName = nameEnd > nameIdx ? resp.Substring(nameIdx, nameEnd - nameIdx) : "";
+                string docUid = "";
+                int lastSlash = docName.LastIndexOf('/');
+                if (lastSlash >= 0) docUid = docName.Substring(lastSlash + 1);
+
+                // If this is our own doc, skip
+                if (docUid == currentUid) { searchPos = nameEnd + 1; continue; }
+
+                // Check if this doc has the same provider in linkedProviders
+                int nextDoc = resp.IndexOf("\"document\":", nameEnd, StringComparison.Ordinal);
+                string docSection = nextDoc > 0
+                    ? resp.Substring(docIdx, nextDoc - docIdx)
+                    : resp.Substring(docIdx);
+
+                if (docSection.Contains("\"stringValue\":\"" + provider + "\""))
+                {
+                    available = false;
+                    break;
+                }
+
+                searchPos = nameEnd + 1;
+            }
+        }
+
+        request.Dispose();
+        callback?.Invoke(available);
+        UnityEngine.Object.Destroy(runner);
     }
 
     static void AddAuthHeader(UnityWebRequest request)
