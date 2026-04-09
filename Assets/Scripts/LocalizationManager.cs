@@ -79,16 +79,17 @@ public class LocalizationManager : MonoBehaviour
         return key;
     }
 
+    static readonly Dictionary<string, string> DestinationKeyMap = new Dictionary<string, string>
+    {
+        { "house_a", "dest_house_a" },
+        { "house_b", "dest_house_b" },
+        { "shop",    "dest_shop" },
+        { "cafe",    "dest_cafe" },
+    };
+
     public string GetDestination(string internalName)
     {
-        switch (internalName)
-        {
-            case "House A": return Get("dest_house_a");
-            case "House B": return Get("dest_house_b");
-            case "Shop":    return Get("dest_shop");
-            case "Cafe":    return Get("dest_cafe");
-            default:        return internalName;
-        }
+        return DestinationKeyMap.TryGetValue(internalName, out var key) ? Get(key) : internalName;
     }
 
     public static string L(string key, string fallback = null)

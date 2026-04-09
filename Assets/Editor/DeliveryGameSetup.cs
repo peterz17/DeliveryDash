@@ -26,7 +26,7 @@ public static class DeliveryGameSetup
         new Vector2(-8f, -5.5f),   // Shop
         new Vector2( 8f, -5.5f),   // Cafe
     };
-    static readonly string[] DeliveryNames     = { "House A", "House B", "Shop", "Cafe" };
+    static readonly string[] DeliveryNames     = { "house_a", "house_b", "shop", "cafe" };
     static readonly string[] DeliveryLabelKeys = { "dest_house_a", "dest_house_b", "dest_shop", "dest_cafe" };
     static readonly Color[] ZoneColors =
     {

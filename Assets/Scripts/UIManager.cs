@@ -2,9 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
-using System.Collections.Generic;
 
-public class UIManager : MonoBehaviour
+public partial class UIManager : MonoBehaviour
 {
     [Header("Gameplay HUD")]
     public TextMeshProUGUI timerText;
@@ -46,6 +45,7 @@ public class UIManager : MonoBehaviour
     public Button resumeButton;
     public Button restartButton;
     public Button selectModeFromPauseButton;
+
     [Header("Buttons")]
     public Button startButton;
     public Button retryButton;
@@ -153,8 +153,7 @@ public class UIManager : MonoBehaviour
     Coroutine feedbackCoroutine;
     Button[] levelButtons;
 
-    readonly Dictionary<string, Coroutine> powerUpTimerCoroutines = new Dictionary<string, Coroutine>();
-    readonly Dictionary<string, TextMeshProUGUI> powerUpSlotTexts  = new Dictionary<string, TextMeshProUGUI>();
+    // ── Helpers ─────────────────────────────────────────────────────────────
 
     void AddClickSound(Button btn)
     {
@@ -175,7 +174,26 @@ public class UIManager : MonoBehaviour
         if (GameManager.Instance != null) action(GameManager.Instance);
     }
 
+    // ── Lifecycle ───────────────────────────────────────────────────────────
+
     void Start()
+    {
+        BindCoreButtons();
+        BindModeButtons();
+        BindLeaderboardButtons();
+        BindAuthButtons();
+        BindSettingsButtons();
+        BindVolumeSliders();
+
+        if (levelSelectScreen == null) AutoFindLevelSelectScreen();
+
+        BuildLevelSelectIfNeeded();
+        BuildPowerUpHudIfNeeded();
+        WireSettingsListeners();
+        RefreshLocalization();
+    }
+
+    void BindCoreButtons()
     {
         Bind(startButton,               () => ShowModeSelectScreen());
         Bind(retryButton,               () => GM(g => g.StartGame()));
@@ -184,6 +202,13 @@ public class UIManager : MonoBehaviour
         Bind(nextLevelButton,           () => GM(g => g.OnNextLevelButton()));
         Bind(selectModeFromPauseButton, () => GM(g => g.ReturnToMainMenu()));
         Bind(playAgainButton,           () => ShowModeSelectScreen());
+        Bind(modeBackToStartButton,     () => ShowStartScreen());
+        Bind(carSelectBackButton,       () => ShowStartScreen());
+        Bind(startCarSelectButton,      () => GM(g => g.ShowCarSelect()));
+    }
+
+    void BindModeButtons()
+    {
         Bind(rushModeButton,            () => GM(g => g.StartWithMode(GameMode.Rush)));
         Bind(heartModeButton,          () => GM(g => g.StartWithMode(GameMode.Heart)));
         Bind(endlessModeButton,         () => GM(g => g.StartWithMode(GameMode.Endless)));
@@ -191,9 +216,10 @@ public class UIManager : MonoBehaviour
         Bind(rushExtremeModeButton,     () => GM(g => g.StartWithMode(GameMode.RushExtreme)));
         Bind(endlessSelectModeButton,   () => ShowModeSelectScreen());
         Bind(endlessRetryButton,        () => GM(g => g.StartWithMode(GameMode.Endless)));
-        Bind(modeBackToStartButton,     () => ShowStartScreen());
-        Bind(carSelectBackButton,       () => ShowStartScreen());
-        Bind(startCarSelectButton,      () => GM(g => g.ShowCarSelect()));
+    }
+
+    void BindLeaderboardButtons()
+    {
         Bind(startLeaderboardButton,         () => ShowLeaderboardScreen());
         Bind(modeSelectLeaderboardButton,    () => ShowLeaderboardScreen());
         Bind(gameOverLeaderboardButton,      () => ShowLeaderboardScreen());
@@ -210,6 +236,10 @@ public class UIManager : MonoBehaviour
                 Bind(leaderboardModeTabs[idx], () => { leaderboardCurrentMode = modes[idx]; PopulateLeaderboard(modes[idx]); UpdateLeaderboardTabHighlight(); });
             }
         }
+    }
+
+    void BindAuthButtons()
+    {
         if (playerNameInput != null)
         {
             playerNameInput.text = LeaderboardManager.GetPlayerName();
@@ -221,36 +251,25 @@ public class UIManager : MonoBehaviour
         Bind(googleSignInButton, () => GoogleSignIn());
         Bind(guestSignInButton, () => GuestSignIn());
         Bind(loginBackButton, () => ShowLoginAuthPhase());
+    }
+
+    void BindSettingsButtons()
+    {
         Bind(settingsButton,            () => ShowSettingsScreen());
         Bind(startSettingsButton,       () => ShowSettingsScreen());
         Bind(hudSettingsButton,         () => GM(g => g.PauseGame()));
         Bind(closeSettingsButton,       () => HideSettingsScreen());
         Bind(googleLinkButton,          () => LinkGoogleAccount());
         Bind(languageButton,            () => { if (LocalizationManager.Instance != null) LocalizationManager.Instance.ToggleLanguage(); UpdateLanguageButtonText(); });
+    }
+
+    void BindVolumeSliders()
+    {
         if (volumeSlider != null)
         {
             if (AudioManager.Instance != null) volumeSlider.value = AudioManager.Instance.MasterVolume;
             volumeSlider.onValueChanged.AddListener(v => AudioManager.Play(a => a.SetMasterVolume(v)));
         }
-
-        // Auto-find LevelSelectScreen if reference is missing
-        if (levelSelectScreen == null)
-        {
-            var canvas = GetComponentInParent<Canvas>();
-            if (canvas == null) canvas = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None).Length > 0
-                ? Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None)[0] : null;
-            if (canvas != null)
-            {
-                foreach (var t in canvas.GetComponentsInChildren<Transform>(true))
-                    if (t.gameObject.name == "LevelSelectScreen")
-                    { levelSelectScreen = t.gameObject; break; }
-            }
-        }
-
-        BuildLevelSelectIfNeeded();
-        BuildPowerUpHudIfNeeded();
-        WireSettingsListeners();
-
         if (bgmVolumeSlider != null)
         {
             if (AudioManager.Instance != null) bgmVolumeSlider.value = AudioManager.Instance.BGMVolume;
@@ -261,10 +280,23 @@ public class UIManager : MonoBehaviour
             if (AudioManager.Instance != null) sfxVolumeSlider.value = AudioManager.Instance.SFXVolume;
             sfxVolumeSlider.onValueChanged.AddListener(v => AudioManager.Play(a => a.SetSFXVolume(v)));
         }
-        RefreshLocalization();
     }
 
-    bool _profileSynced;
+    void AutoFindLevelSelectScreen()
+    {
+        var canvas = GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            var canvases = Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+            if (canvases.Length > 0) canvas = canvases[0];
+        }
+        if (canvas != null)
+        {
+            foreach (var t in canvas.GetComponentsInChildren<Transform>(true))
+                if (t.gameObject.name == "LevelSelectScreen")
+                { levelSelectScreen = t.gameObject; break; }
+        }
+    }
 
     void OnEnable()
     {
@@ -284,20 +316,7 @@ public class UIManager : MonoBehaviour
         AuthManager.OnAuthStateChanged      -= HandleAuthReturningSession;
     }
 
-    void HandleAuthReturningSession()
-    {
-        if (_profileSynced) return;
-        if (AuthManager.Instance == null || !AuthManager.Instance.IsAuthenticated) return;
-        _profileSynced = true;
-        FirestoreUserProfile.SyncOnLogin(null);
-    }
-
-    void HandleSessionExpired()
-    {
-        ShowLoginScreen();
-        if (authStatusText != null)
-            authStatusText.text = LocalizationManager.L("auth_session_expired", "Session expired. Please sign in again.");
-    }
+    // ── Screen management ───────────────────────────────────────────────────
 
     public void ShowStartScreen()
     {
@@ -310,642 +329,9 @@ public class UIManager : MonoBehaviour
         SetAllScreens(start: true);
     }
 
-    public void ShowLoginScreen()
-    {
-        SetAllScreens(login: true);
-        ShowLoginAuthPhase();
-    }
-
-    void ShowLoginAuthPhase()
-    {
-        if (loginAuthPanel != null) loginAuthPanel.SetActive(true);
-        if (loginNamePanel != null) loginNamePanel.SetActive(false);
-        if (authStatusText != null) authStatusText.text = "";
-    }
-
-    void ShowLoginNamePhase()
-    {
-        if (loginAuthPanel != null) loginAuthPanel.SetActive(false);
-        if (loginNamePanel != null) loginNamePanel.SetActive(true);
-        if (playerNameInput != null)
-        {
-            string saved = LeaderboardManager.GetPlayerName();
-            playerNameInput.text = saved == "Player" ? "" : saved;
-            playerNameInput.ActivateInputField();
-        }
-    }
-
-    void ConfirmLogin()
-    {
-        string name = playerNameInput != null ? playerNameInput.text.Trim() : "";
-        if (string.IsNullOrEmpty(name)) return;
-        LeaderboardManager.SetPlayerName(name);
-
-        if (AuthManager.Instance != null && !AuthManager.Instance.IsAuthenticated)
-        {
-            if (authStatusText != null)
-                authStatusText.text = LocalizationManager.L("auth_syncing", "Loading profile...");
-            AuthManager.Instance.SignInAnonymous(
-                onSuccess: () => { _profileSynced = true; FirestoreUserProfile.SyncOnLogin(() => SetAllScreens(start: true)); },
-                onError: _ => SetAllScreens(start: true)
-            );
-        }
-        else
-        {
-            FirestoreUserProfile.SyncOnLogin(() => SetAllScreens(start: true));
-        }
-    }
-
-    void GoogleSignIn()
-    {
-        if (authStatusText != null)
-            authStatusText.text = LocalizationManager.L("auth_signing_in", "Signing in...");
-
-#if UNITY_EDITOR
-        // Editor: use dev refresh token
-        if (AuthManager.Instance != null)
-        {
-            AuthManager.Instance.EditorDevSignIn(
-                () => OnGoogleSignInComplete(),
-                error =>
-                {
-                    if (authStatusText != null)
-                        authStatusText.text = LocalizationManager.L("auth_error", "Sign-in failed. Try again.");
-                }
-            );
-        }
-#elif UNITY_WEBGL
-        Debug.Log("[UI] GoogleSignIn: WebGLAuthProvider.Instance=" + (WebGLAuthProvider.Instance != null));
-        if (WebGLAuthProvider.Instance != null)
-        {
-            WebGLAuthProvider.Instance.SignIn(
-                (idToken, refreshToken) => OnGoogleSignInComplete(),
-                error =>
-                {
-                    if (authStatusText == null) return;
-                    if (error != null && error.Contains("cancelled"))
-                        authStatusText.text = LocalizationManager.L("auth_cancelled", "Sign-in cancelled.");
-                    else
-                        authStatusText.text = LocalizationManager.L("auth_error", "Sign-in failed. Try again.");
-                }
-            );
-        }
-#else
-        if (authStatusText != null)
-            authStatusText.text = LocalizationManager.L("auth_webgl_only", "Google Sign-In is only available in the web version.");
-#endif
-    }
-
-    void OnGoogleSignInComplete()
-    {
-        Debug.Log("[UI] GoogleSignIn SUCCESS");
-        _profileSynced = true;
-        if (authStatusText != null)
-            authStatusText.text = LocalizationManager.L("auth_syncing", "Loading profile...");
-        FirestoreUserProfile.SyncOnLogin(() =>
-        {
-            string savedName = LeaderboardManager.GetPlayerName();
-            if (savedName == "Player" || string.IsNullOrEmpty(savedName))
-                ShowLoginNamePhase();
-            else
-                SetAllScreens(start: true);
-        });
-    }
-
-    void GuestSignIn()
-    {
-        ShowLoginNamePhase();
-    }
-
     public void ShowModeSelectScreen()
     {
         SetAllScreens(modeSelect: true);
-    }
-
-    public void ShowCarSelectScreen()
-    {
-        SetAllScreens(carSelect: true);
-        PopulateCarItems();
-        UpdateCoinDisplay(GameManager.Instance != null ? GameManager.Instance.Coins : 0);
-        WireCarSelectDebugButtons();
-    }
-
-    void WireCarSelectDebugButtons()
-    {
-        if (carSelectScreen == null) return;
-        var unlockBtn = carSelectScreen.transform.Find("UnlockAllButton")?.GetComponent<Button>();
-        var resetBtn = carSelectScreen.transform.Find("ResetAllButton")?.GetComponent<Button>();
-
-        if (unlockBtn != null)
-        {
-            unlockBtn.onClick.RemoveAllListeners();
-            unlockBtn.onClick.AddListener(() =>
-            {
-                GM(g => { g.UnlockAllCars(); PopulateCarItems(); UpdateCoinDisplay(g.Coins); });
-            });
-            AddClickSound(unlockBtn);
-        }
-        if (resetBtn != null)
-        {
-            resetBtn.onClick.RemoveAllListeners();
-            resetBtn.onClick.AddListener(() =>
-            {
-                GM(g => { g.ResetAllCars(); PopulateCarItems(); UpdateCoinDisplay(g.Coins); });
-            });
-            AddClickSound(resetBtn);
-        }
-    }
-
-    public void UpdateCoinDisplay(int coins)
-    {
-        if (coinBalanceText != null)
-            coinBalanceText.text = string.Format(LocalizationManager.L("hud_coins", "Coins: {0}"), coins);
-        if (hudCoinText != null)
-            hudCoinText.text = string.Format(LocalizationManager.L("hud_coins", "Coins: {0}"), coins);
-    }
-
-    void PopulateCarItems()
-    {
-        if (carSelectContent == null) return;
-        var gm = GameManager.Instance;
-        if (gm == null || gm.carCatalog == null) return;
-
-        // Clear existing items
-        for (int i = carSelectContent.childCount - 1; i >= 0; i--)
-            Destroy(carSelectContent.GetChild(i).gameObject);
-
-        // Adjust grid columns based on orientation
-        var grid = carSelectContent.GetComponent<GridLayoutGroup>();
-        if (grid != null)
-        {
-            bool landscape = Screen.width > Screen.height;
-            grid.constraintCount = landscape ? 5 : 3;
-        }
-
-        foreach (var car in gm.carCatalog)
-        {
-            if (car == null) continue;
-            CreateCarCard(car, gm);
-        }
-    }
-
-    void CreateCarCard(CarData car, GameManager gm)
-    {
-        bool unlocked = gm.IsCarUnlocked(car);
-        bool selected = gm.selectedCar == car;
-
-        var card = new GameObject(car.carId, typeof(RectTransform));
-        card.transform.SetParent(carSelectContent, false);
-        var cardRT = card.GetComponent<RectTransform>();
-        cardRT.sizeDelta = new Vector2(280, 480);
-
-        // Background — selected = bright green border feel
-        var bg = card.AddComponent<Image>();
-        bg.color = selected ? new Color(0.10f, 0.55f, 0.20f, 1f)
-                 : unlocked ? new Color(0.12f, 0.13f, 0.22f, 1f)
-                 : new Color(0.08f, 0.08f, 0.12f, 1f);
-
-        // Selected badge
-        if (selected)
-        {
-            var badgeGO = new GameObject("SelectedBadge", typeof(RectTransform));
-            badgeGO.transform.SetParent(card.transform, false);
-            var badgeRT = badgeGO.GetComponent<RectTransform>();
-            badgeRT.anchorMin = new Vector2(0.60f, 0.90f);
-            badgeRT.anchorMax = new Vector2(1.00f, 1.00f);
-            badgeRT.offsetMin = badgeRT.offsetMax = Vector2.zero;
-            badgeGO.AddComponent<Image>().color = new Color(0.1f, 0.8f, 0.2f, 1f);
-            var badgeTxt = new GameObject("Txt", typeof(RectTransform));
-            badgeTxt.transform.SetParent(badgeGO.transform, false);
-            var badgeTxtRT = badgeTxt.GetComponent<RectTransform>();
-            badgeTxtRT.anchorMin = Vector2.zero; badgeTxtRT.anchorMax = Vector2.one;
-            badgeTxtRT.offsetMin = badgeTxtRT.offsetMax = Vector2.zero;
-            var badgeTMP = badgeTxt.AddComponent<TextMeshProUGUI>();
-            badgeTMP.text = "\u2713";
-            badgeTMP.fontSize = 20;
-            badgeTMP.fontStyle = FontStyles.Bold;
-            badgeTMP.alignment = TextAlignmentOptions.Center;
-            badgeTMP.color = Color.white;
-        }
-
-        // Car icon — top 48%-92%
-        var iconGO = new GameObject("Icon", typeof(RectTransform));
-        iconGO.transform.SetParent(card.transform, false);
-        var iconRT = iconGO.GetComponent<RectTransform>();
-        iconRT.anchorMin = new Vector2(0.10f, 0.48f);
-        iconRT.anchorMax = new Vector2(0.90f, 0.92f);
-        iconRT.offsetMin = iconRT.offsetMax = Vector2.zero;
-        var iconImg = iconGO.AddComponent<Image>();
-        if (car.carSprite != null)
-        {
-            iconImg.sprite = car.carSprite;
-            iconImg.preserveAspect = true;
-            iconImg.color = unlocked ? Color.white : new Color(0.4f, 0.4f, 0.4f, 1f);
-        }
-        else
-            iconImg.color = new Color(0.5f, 0.5f, 0.5f, 1f);
-
-        // Car name — 40%-48%
-        var nameGO = new GameObject("Name", typeof(RectTransform));
-        nameGO.transform.SetParent(card.transform, false);
-        var nameRT = nameGO.GetComponent<RectTransform>();
-        nameRT.anchorMin = new Vector2(0.05f, 0.40f);
-        nameRT.anchorMax = new Vector2(0.95f, 0.48f);
-        nameRT.offsetMin = nameRT.offsetMax = Vector2.zero;
-        var nameTMP = nameGO.AddComponent<TextMeshProUGUI>();
-        nameTMP.text = LocalizationManager.L(car.localizationKey, car.carId);
-        nameTMP.fontSize = 22;
-        nameTMP.fontStyle = FontStyles.Bold;
-        nameTMP.alignment = TextAlignmentOptions.Center;
-        nameTMP.color = Color.white;
-
-        // Stats — 18%-40% (3 rows with gaps)
-        CreateStatRow(card.transform, LocalizationManager.L("car_stat_speed", "SPD"), car.displaySpeed, 0.31f, 0.39f);
-        CreateStatRow(card.transform, "\u2665 +" + car.bonusHearts, car.bonusHearts, 0.23f, 0.30f);
-        CreateStatRow(card.transform, LocalizationManager.L("car_stat_size", "SIZE"), car.displaySize, 0.15f, 0.22f);
-
-        // Button — 3%-11%
-        var btnGO = new GameObject("Btn", typeof(RectTransform));
-        btnGO.transform.SetParent(card.transform, false);
-        var btnRT = btnGO.GetComponent<RectTransform>();
-        btnRT.anchorMin = new Vector2(0.05f, 0.03f);
-        btnRT.anchorMax = new Vector2(0.95f, 0.11f);
-        btnRT.offsetMin = btnRT.offsetMax = Vector2.zero;
-        var btnImg = btnGO.AddComponent<Image>();
-        var btn = btnGO.AddComponent<Button>();
-
-        var btnLabelGO = new GameObject("Label", typeof(RectTransform));
-        btnLabelGO.transform.SetParent(btnGO.transform, false);
-        var btnLabelRT = btnLabelGO.GetComponent<RectTransform>();
-        btnLabelRT.anchorMin = Vector2.zero;
-        btnLabelRT.anchorMax = Vector2.one;
-        btnLabelRT.offsetMin = btnLabelRT.offsetMax = Vector2.zero;
-        var btnLabel = btnLabelGO.AddComponent<TextMeshProUGUI>();
-        btnLabel.fontSize = 18;
-        btnLabel.fontStyle = FontStyles.Bold;
-        btnLabel.alignment = TextAlignmentOptions.Center;
-        btnLabel.color = Color.white;
-
-        if (selected)
-        {
-            btnImg.color = new Color(0.1f, 0.65f, 0.2f, 1f);
-            btnLabel.text = LocalizationManager.L("car_selected", "SELECTED");
-            btn.interactable = false;
-        }
-        else if (unlocked)
-        {
-            btnImg.color = new Color(0.15f, 0.45f, 0.75f, 1f);
-            btnLabel.text = LocalizationManager.L("car_select", "SELECT");
-            var c = car;
-            btn.onClick.AddListener(() => { gm.SelectCar(c); PopulateCarItems(); });
-            AddClickSound(btn);
-        }
-        else
-        {
-            bool canUnlock = gm.CanUnlockCar(car);
-            btnImg.color = canUnlock ? new Color(0.75f, 0.60f, 0.10f, 1f) : new Color(0.25f, 0.25f, 0.25f, 1f);
-            btnLabel.text = string.Format(LocalizationManager.L("car_cost_fmt", "{0} Coins"), car.unlockCost);
-            btnLabel.color = canUnlock ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
-            var c = car;
-            btn.onClick.AddListener(() => ShowBuyConfirmPopup(c));
-            AddClickSound(btn);
-            btn.interactable = canUnlock;
-
-            // Details button inside card, below buy button
-            bool hasReq = car.requiredLevel > 0 || car.requiredEndlessTier10 > 0;
-            if (hasReq)
-            {
-                // Shift buy button up to make room for details
-                btnRT.anchorMin = new Vector2(0.05f, 0.06f);
-                btnRT.anchorMax = new Vector2(0.95f, 0.14f);
-
-                var detBtnGO = new GameObject("DetailBtn", typeof(RectTransform));
-                detBtnGO.transform.SetParent(card.transform, false);
-                var detRT = detBtnGO.GetComponent<RectTransform>();
-                detRT.anchorMin = new Vector2(0.10f, 0.00f);
-                detRT.anchorMax = new Vector2(0.90f, 0.06f);
-                detRT.offsetMin = detRT.offsetMax = Vector2.zero;
-                var detImg = detBtnGO.AddComponent<Image>();
-                detImg.color = new Color(0.20f, 0.25f, 0.40f, 1f);
-                var detBtn = detBtnGO.AddComponent<Button>();
-                var detLabelGO = new GameObject("Label", typeof(RectTransform));
-                detLabelGO.transform.SetParent(detBtnGO.transform, false);
-                var detLabelRT = detLabelGO.GetComponent<RectTransform>();
-                detLabelRT.anchorMin = Vector2.zero;
-                detLabelRT.anchorMax = Vector2.one;
-                detLabelRT.offsetMin = detLabelRT.offsetMax = Vector2.zero;
-                var detLabel = detLabelGO.AddComponent<TextMeshProUGUI>();
-                detLabel.text = LocalizationManager.L("car_details", "DETAILS");
-                detLabel.fontSize = 14;
-                detLabel.alignment = TextAlignmentOptions.Center;
-                detLabel.color = new Color(0.8f, 0.85f, 1f, 1f);
-                var carRef = car;
-                detBtn.onClick.AddListener(() => ShowUnlockPopup(carRef));
-                AddClickSound(detBtn);
-            }
-        }
-    }
-
-    GameObject unlockPopup;
-
-    void ShowBuyConfirmPopup(CarData car)
-    {
-        if (unlockPopup != null) Destroy(unlockPopup);
-        var gm = GameManager.Instance;
-        if (gm == null) return;
-
-        unlockPopup = new GameObject("BuyConfirmPopup", typeof(RectTransform));
-        unlockPopup.transform.SetParent(carSelectScreen.transform, false);
-        var popRT = unlockPopup.GetComponent<RectTransform>();
-        popRT.anchorMin = Vector2.zero;
-        popRT.anchorMax = Vector2.one;
-        popRT.offsetMin = popRT.offsetMax = Vector2.zero;
-        var popBg = unlockPopup.AddComponent<Image>();
-        popBg.color = new Color(0.02f, 0.03f, 0.08f, 0.92f);
-
-        var panelGO = new GameObject("Panel", typeof(RectTransform));
-        panelGO.transform.SetParent(unlockPopup.transform, false);
-        var panelRT = panelGO.GetComponent<RectTransform>();
-        panelRT.anchorMin = new Vector2(0.15f, 0.25f);
-        panelRT.anchorMax = new Vector2(0.85f, 0.75f);
-        panelRT.offsetMin = panelRT.offsetMax = Vector2.zero;
-        panelGO.AddComponent<Image>().color = new Color(0.12f, 0.13f, 0.22f, 0.95f);
-
-        string carName = LocalizationManager.L(car.localizationKey, car.carId);
-
-        // Title
-        var titleGO = new GameObject("Title", typeof(RectTransform));
-        titleGO.transform.SetParent(panelGO.transform, false);
-        var titleRT = titleGO.GetComponent<RectTransform>();
-        titleRT.anchorMin = new Vector2(0.05f, 0.65f);
-        titleRT.anchorMax = new Vector2(0.95f, 0.90f);
-        titleRT.offsetMin = titleRT.offsetMax = Vector2.zero;
-        var titleTMP = titleGO.AddComponent<TextMeshProUGUI>();
-        titleTMP.text = string.Format(LocalizationManager.L("car_buy_confirm", "Buy {0}?"), carName);
-        titleTMP.fontSize = 32;
-        titleTMP.fontStyle = FontStyles.Bold;
-        titleTMP.alignment = TextAlignmentOptions.Center;
-        titleTMP.color = new Color(0.85f, 0.65f, 0.20f);
-
-        // Cost info
-        var costGO = new GameObject("Cost", typeof(RectTransform));
-        costGO.transform.SetParent(panelGO.transform, false);
-        var costRT = costGO.GetComponent<RectTransform>();
-        costRT.anchorMin = new Vector2(0.05f, 0.42f);
-        costRT.anchorMax = new Vector2(0.95f, 0.62f);
-        costRT.offsetMin = costRT.offsetMax = Vector2.zero;
-        var costTMP = costGO.AddComponent<TextMeshProUGUI>();
-        costTMP.text = string.Format(LocalizationManager.L("car_buy_cost", "Cost: {0} coins\nYour coins: {1}"), car.unlockCost, gm.Coins);
-        costTMP.fontSize = 24;
-        costTMP.alignment = TextAlignmentOptions.Center;
-        costTMP.color = Color.white;
-        costTMP.enableAutoSizing = true;
-        costTMP.fontSizeMin = 14;
-        costTMP.fontSizeMax = 24;
-
-        // YES button
-        var yesBtnGO = new GameObject("YesBtn", typeof(RectTransform));
-        yesBtnGO.transform.SetParent(panelGO.transform, false);
-        var yesRT = yesBtnGO.GetComponent<RectTransform>();
-        yesRT.anchorMin = new Vector2(0.08f, 0.08f);
-        yesRT.anchorMax = new Vector2(0.45f, 0.30f);
-        yesRT.offsetMin = yesRT.offsetMax = Vector2.zero;
-        yesBtnGO.AddComponent<Image>().color = new Color(0.15f, 0.55f, 0.15f);
-        var yesBtn = yesBtnGO.AddComponent<Button>();
-        var yesLblGO = new GameObject("Label", typeof(RectTransform));
-        yesLblGO.transform.SetParent(yesBtnGO.transform, false);
-        var yesLblRT = yesLblGO.GetComponent<RectTransform>();
-        yesLblRT.anchorMin = Vector2.zero; yesLblRT.anchorMax = Vector2.one;
-        yesLblRT.offsetMin = yesLblRT.offsetMax = Vector2.zero;
-        var yesLbl = yesLblGO.AddComponent<TextMeshProUGUI>();
-        yesLbl.text = LocalizationManager.L("car_buy_yes", "YES");
-        yesLbl.fontSize = 26; yesLbl.fontStyle = FontStyles.Bold;
-        yesLbl.alignment = TextAlignmentOptions.Center; yesLbl.color = Color.white;
-
-        var carRef = car;
-        yesBtn.onClick.AddListener(() =>
-        {
-            if (gm.TryUnlockCar(carRef))
-            {
-                gm.SelectCar(carRef);
-                if (unlockPopup != null) Destroy(unlockPopup);
-                PopulateCarItems();
-                UpdateCoinDisplay(gm.Coins);
-            }
-        });
-        AddClickSound(yesBtn);
-
-        // NO button
-        var noBtnGO = new GameObject("NoBtn", typeof(RectTransform));
-        noBtnGO.transform.SetParent(panelGO.transform, false);
-        var noRT = noBtnGO.GetComponent<RectTransform>();
-        noRT.anchorMin = new Vector2(0.55f, 0.08f);
-        noRT.anchorMax = new Vector2(0.92f, 0.30f);
-        noRT.offsetMin = noRT.offsetMax = Vector2.zero;
-        noBtnGO.AddComponent<Image>().color = new Color(0.55f, 0.15f, 0.15f);
-        var noBtn = noBtnGO.AddComponent<Button>();
-        var noLblGO = new GameObject("Label", typeof(RectTransform));
-        noLblGO.transform.SetParent(noBtnGO.transform, false);
-        var noLblRT = noLblGO.GetComponent<RectTransform>();
-        noLblRT.anchorMin = Vector2.zero; noLblRT.anchorMax = Vector2.one;
-        noLblRT.offsetMin = noLblRT.offsetMax = Vector2.zero;
-        var noLbl = noLblGO.AddComponent<TextMeshProUGUI>();
-        noLbl.text = LocalizationManager.L("car_buy_no", "NO");
-        noLbl.fontSize = 26; noLbl.fontStyle = FontStyles.Bold;
-        noLbl.alignment = TextAlignmentOptions.Center; noLbl.color = Color.white;
-        noBtn.onClick.AddListener(() => { if (unlockPopup != null) Destroy(unlockPopup); });
-        AddClickSound(noBtn);
-    }
-
-    void ShowUnlockPopup(CarData car)
-    {
-        if (unlockPopup != null) Destroy(unlockPopup);
-        var gm = GameManager.Instance;
-        if (gm == null) return;
-
-        // Popup background — full screen dark overlay
-        unlockPopup = new GameObject("UnlockPopup", typeof(RectTransform));
-        unlockPopup.transform.SetParent(carSelectScreen.transform, false);
-        var popRT = unlockPopup.GetComponent<RectTransform>();
-        popRT.anchorMin = Vector2.zero;
-        popRT.anchorMax = Vector2.one;
-        popRT.offsetMin = popRT.offsetMax = Vector2.zero;
-        var popBg = unlockPopup.AddComponent<Image>();
-        popBg.color = new Color(0.02f, 0.03f, 0.08f, 0.92f);
-
-        // Panel
-        var panelGO = new GameObject("Panel", typeof(RectTransform));
-        panelGO.transform.SetParent(unlockPopup.transform, false);
-        var panelRT = panelGO.GetComponent<RectTransform>();
-        panelRT.anchorMin = new Vector2(0.1f, 0.15f);
-        panelRT.anchorMax = new Vector2(0.9f, 0.85f);
-        panelRT.offsetMin = panelRT.offsetMax = Vector2.zero;
-        var panelImg = panelGO.AddComponent<Image>();
-        panelImg.color = new Color(0.12f, 0.13f, 0.22f, 0.95f);
-
-        // Title
-        var titleGO = new GameObject("Title", typeof(RectTransform));
-        titleGO.transform.SetParent(panelGO.transform, false);
-        var titleRT = titleGO.GetComponent<RectTransform>();
-        titleRT.anchorMin = new Vector2(0.05f, 0.82f);
-        titleRT.anchorMax = new Vector2(0.95f, 0.95f);
-        titleRT.offsetMin = titleRT.offsetMax = Vector2.zero;
-        var titleTMP = titleGO.AddComponent<TextMeshProUGUI>();
-        string carName = LocalizationManager.L(car.localizationKey, car.carId);
-        titleTMP.text = string.Format(LocalizationManager.L("car_unlock_title", "Unlock {0}"), carName);
-        titleTMP.fontSize = 32;
-        titleTMP.fontStyle = FontStyles.Bold;
-        titleTMP.alignment = TextAlignmentOptions.Center;
-        titleTMP.color = new Color(0.85f, 0.65f, 0.20f);
-
-        // Requirements list
-        float y = 0.72f;
-        float rowH = 0.10f;
-
-        // Coins requirement
-        bool coinsOk = gm.Coins >= car.unlockCost;
-        AddReqRow(panelGO.transform, coinsOk,
-            string.Format(LocalizationManager.L("car_cost_fmt", "{0} Coins"), car.unlockCost),
-            $"({gm.Coins}/{car.unlockCost})", y, y + rowH);
-        y -= rowH + 0.02f;
-
-        // Level requirement
-        if (car.requiredLevel > 0)
-        {
-            bool heartOk = GameManager.GetUnlockedLevel(GameMode.Heart) >= car.requiredLevel;
-            AddReqRow(panelGO.transform, heartOk,
-                string.Format(LocalizationManager.L("car_req_heart", "Heart Mode Lv.{0}"), car.requiredLevel),
-                heartOk ? "\u2713" : $"(Lv.{GameManager.GetUnlockedLevel(GameMode.Heart) + 1})", y, y + rowH);
-            y -= rowH + 0.02f;
-
-            bool rushOk = GameManager.GetUnlockedLevel(GameMode.Rush) >= car.requiredLevel;
-            AddReqRow(panelGO.transform, rushOk,
-                string.Format(LocalizationManager.L("car_req_rush", "Rush Mode Lv.{0}"), car.requiredLevel),
-                rushOk ? "\u2713" : $"(Lv.{GameManager.GetUnlockedLevel(GameMode.Rush) + 1})", y, y + rowH);
-            y -= rowH + 0.02f;
-        }
-
-        // Endless tier 10 requirement
-        if (car.requiredEndlessTier10 > 0)
-        {
-            int count = GameManager.GetEndlessTier10Count();
-            bool ok = count >= car.requiredEndlessTier10;
-            AddReqRow(panelGO.transform, ok,
-                string.Format(LocalizationManager.L("car_req_endless", "Endless Tier 10 x{0}"), car.requiredEndlessTier10),
-                $"({count}/{car.requiredEndlessTier10})", y, y + rowH);
-            y -= rowH + 0.02f;
-        }
-
-        // Close button
-        var closeBtnGO = new GameObject("CloseBtn", typeof(RectTransform));
-        closeBtnGO.transform.SetParent(panelGO.transform, false);
-        var closeRT = closeBtnGO.GetComponent<RectTransform>();
-        closeRT.anchorMin = new Vector2(0.3f, 0.03f);
-        closeRT.anchorMax = new Vector2(0.7f, 0.12f);
-        closeRT.offsetMin = closeRT.offsetMax = Vector2.zero;
-        var closeImg = closeBtnGO.AddComponent<Image>();
-        closeImg.color = new Color(0.3f, 0.3f, 0.4f);
-        var closeBtn = closeBtnGO.AddComponent<Button>();
-        closeBtn.onClick.AddListener(() => { if (unlockPopup != null) Destroy(unlockPopup); });
-        AddClickSound(closeBtn);
-        var closeLabelGO = new GameObject("Label", typeof(RectTransform));
-        closeLabelGO.transform.SetParent(closeBtnGO.transform, false);
-        var closeLabelRT = closeLabelGO.GetComponent<RectTransform>();
-        closeLabelRT.anchorMin = Vector2.zero;
-        closeLabelRT.anchorMax = Vector2.one;
-        closeLabelRT.offsetMin = closeLabelRT.offsetMax = Vector2.zero;
-        var closeLabel = closeLabelGO.AddComponent<TextMeshProUGUI>();
-        closeLabel.text = LocalizationManager.L("btn_close", "Close");
-        closeLabel.fontSize = 22;
-        closeLabel.alignment = TextAlignmentOptions.Center;
-        closeLabel.color = Color.white;
-    }
-
-    void AddReqRow(Transform parent, bool completed, string label, string status, float yMin, float yMax)
-    {
-        var rowGO = new GameObject("ReqRow", typeof(RectTransform));
-        rowGO.transform.SetParent(parent, false);
-        var rowRT = rowGO.GetComponent<RectTransform>();
-        rowRT.anchorMin = new Vector2(0.05f, yMin);
-        rowRT.anchorMax = new Vector2(0.95f, yMax);
-        rowRT.offsetMin = rowRT.offsetMax = Vector2.zero;
-
-        // Icon
-        var iconGO = new GameObject("Icon", typeof(RectTransform));
-        iconGO.transform.SetParent(rowGO.transform, false);
-        var iconRT = iconGO.GetComponent<RectTransform>();
-        iconRT.anchorMin = new Vector2(0f, 0.1f);
-        iconRT.anchorMax = new Vector2(0.08f, 0.9f);
-        iconRT.offsetMin = iconRT.offsetMax = Vector2.zero;
-        var iconTMP = iconGO.AddComponent<TextMeshProUGUI>();
-        iconTMP.text = completed ? "\u2713" : "\u2717";
-        iconTMP.fontSize = 24;
-        iconTMP.alignment = TextAlignmentOptions.Center;
-        iconTMP.color = completed ? new Color(0.3f, 0.9f, 0.3f) : new Color(0.9f, 0.3f, 0.3f);
-
-        // Label
-        var labelGO = new GameObject("Label", typeof(RectTransform));
-        labelGO.transform.SetParent(rowGO.transform, false);
-        var labelRT = labelGO.GetComponent<RectTransform>();
-        labelRT.anchorMin = new Vector2(0.10f, 0f);
-        labelRT.anchorMax = new Vector2(0.70f, 1f);
-        labelRT.offsetMin = labelRT.offsetMax = Vector2.zero;
-        var labelTMP = labelGO.AddComponent<TextMeshProUGUI>();
-        labelTMP.text = label;
-        labelTMP.fontSize = 22;
-        labelTMP.alignment = TextAlignmentOptions.MidlineLeft;
-        labelTMP.color = completed ? new Color(0.7f, 0.9f, 0.7f) : Color.white;
-        labelTMP.enableAutoSizing = true;
-        labelTMP.fontSizeMin = 12;
-        labelTMP.fontSizeMax = 22;
-
-        // Status
-        var statGO = new GameObject("Status", typeof(RectTransform));
-        statGO.transform.SetParent(rowGO.transform, false);
-        var statRT = statGO.GetComponent<RectTransform>();
-        statRT.anchorMin = new Vector2(0.72f, 0f);
-        statRT.anchorMax = new Vector2(1f, 1f);
-        statRT.offsetMin = statRT.offsetMax = Vector2.zero;
-        var statTMP = statGO.AddComponent<TextMeshProUGUI>();
-        statTMP.text = status;
-        statTMP.fontSize = 18;
-        statTMP.alignment = TextAlignmentOptions.MidlineRight;
-        statTMP.color = completed ? new Color(0.3f, 0.9f, 0.3f) : new Color(0.9f, 0.7f, 0.3f);
-    }
-
-    void CreateStatRow(Transform parent, string label, int pips, float yMin, float yMax)
-    {
-        var rowGO = new GameObject("Stat", typeof(RectTransform));
-        rowGO.transform.SetParent(parent, false);
-        var rowRT = rowGO.GetComponent<RectTransform>();
-        rowRT.anchorMin = new Vector2(0.05f, yMin);
-        rowRT.anchorMax = new Vector2(0.95f, yMax);
-        rowRT.offsetMin = rowRT.offsetMax = Vector2.zero;
-
-        var labelGO = new GameObject("Label", typeof(RectTransform));
-        labelGO.transform.SetParent(rowGO.transform, false);
-        var labelRT = labelGO.GetComponent<RectTransform>();
-        labelRT.anchorMin = new Vector2(0f, 0f);
-        labelRT.anchorMax = new Vector2(0.35f, 1f);
-        labelRT.offsetMin = labelRT.offsetMax = Vector2.zero;
-        var labelTMP = labelGO.AddComponent<TextMeshProUGUI>();
-        labelTMP.text = label;
-        labelTMP.fontSize = 13;
-        labelTMP.alignment = TextAlignmentOptions.MidlineLeft;
-        labelTMP.color = new Color(0.85f, 0.85f, 0.90f, 1f);
-
-        for (int i = 0; i < 5; i++)
-        {
-            var pipGO = new GameObject("Pip", typeof(RectTransform));
-            pipGO.transform.SetParent(rowGO.transform, false);
-            var pipRT = pipGO.GetComponent<RectTransform>();
-            float px = 0.38f + i * 0.12f;
-            pipRT.anchorMin = new Vector2(px, 0.15f);
-            pipRT.anchorMax = new Vector2(px + 0.10f, 0.85f);
-            pipRT.offsetMin = pipRT.offsetMax = Vector2.zero;
-            var pipImg = pipGO.AddComponent<Image>();
-            pipImg.color = i < pips ? new Color(0.2f, 0.9f, 0.3f, 1f) : new Color(0.25f, 0.25f, 0.30f, 1f);
-        }
     }
 
     public void ShowGameplayUI()
@@ -956,16 +342,6 @@ public class UIManager : MonoBehaviour
         if (livesText != null) livesText.gameObject.SetActive(false);
         ClearPowerUpTimers();
         UpdateCoinDisplay(GameManager.Instance != null ? GameManager.Instance.Coins : 0);
-    }
-
-    public void ClearPowerUpTimers()
-    {
-        foreach (var kv in powerUpTimerCoroutines)
-            if (kv.Value != null) StopCoroutine(kv.Value);
-        powerUpTimerCoroutines.Clear();
-        foreach (var kv in powerUpSlotTexts)
-            if (kv.Value != null) kv.Value.gameObject.SetActive(false);
-        if (powerUpHudPanel != null) powerUpHudPanel.SetActive(false);
     }
 
     public void ShowLevelFail(int score, int needed, int level, int bestScore)
@@ -1063,358 +439,6 @@ public class UIManager : MonoBehaviour
         if (show) { txt.text = text; txt.color = color; }
     }
 
-    public void ShowSettingsScreen()
-    {
-        if (settingsScreen != null) settingsScreen.SetActive(true);
-        UpdateGoogleLinkStatus();
-    }
-
-    public void HideSettingsScreen()
-    {
-        if (settingsScreen != null) settingsScreen.SetActive(false);
-    }
-
-    void UpdateGoogleLinkStatus()
-    {
-        bool isGoogle = AuthManager.Instance != null && AuthManager.Instance.Provider == AuthProviderType.Google;
-
-        if (googleLinkButton != null)
-        {
-            googleLinkButton.interactable = !isGoogle;
-            var btnText = googleLinkButton.GetComponentInChildren<TextMeshProUGUI>();
-            if (btnText != null)
-                btnText.text = isGoogle
-                    ? LocalizationManager.L("settings_google_linked", "Google Account Linked")
-                    : LocalizationManager.L("settings_google_link", "Link Google Account");
-        }
-
-        if (googleLinkStatusText != null)
-        {
-            if (isGoogle)
-            {
-                string email = AuthManager.Instance.Email;
-                googleLinkStatusText.text = !string.IsNullOrEmpty(email) ? email : AuthManager.Instance.DisplayName;
-            }
-            else
-            {
-                googleLinkStatusText.text = "";
-            }
-        }
-    }
-
-    void LinkGoogleAccount()
-    {
-        if (googleLinkStatusText != null)
-            googleLinkStatusText.text = LocalizationManager.L("auth_signing_in", "Signing in...");
-
-        System.Action onSuccess = () =>
-        {
-            string email = AuthManager.Instance != null ? AuthManager.Instance.Email : "";
-            FirestoreUserProfile.CheckProviderAvailable("Google", email, available =>
-            {
-                if (!available)
-                {
-                    if (googleLinkStatusText != null)
-                        googleLinkStatusText.text = LocalizationManager.L("auth_email_exists",
-                            "This Google account is already linked to another player.");
-                    AuthManager.Instance.SignOut();
-                    return;
-                }
-                _profileSynced = true;
-                FirestoreUserProfile.SyncOnLogin(() => UpdateGoogleLinkStatus());
-            });
-        };
-
-        System.Action<string> onError = error =>
-        {
-            if (googleLinkStatusText == null) return;
-            if (error != null && error.Contains("cancelled"))
-                googleLinkStatusText.text = LocalizationManager.L("auth_cancelled", "Sign-in cancelled.");
-            else
-                googleLinkStatusText.text = LocalizationManager.L("auth_error", "Sign-in failed. Try again.");
-        };
-
-#if UNITY_EDITOR
-        if (AuthManager.Instance != null)
-            AuthManager.Instance.EditorDevSignIn(() => onSuccess(), error => onError(error));
-#elif UNITY_WEBGL
-        if (WebGLAuthProvider.Instance != null)
-            WebGLAuthProvider.Instance.SignIn((id, rt) => onSuccess(), error => onError(error));
-#else
-        if (googleLinkStatusText != null)
-            googleLinkStatusText.text = LocalizationManager.L("auth_webgl_only", "Google Sign-In is only available in the web version.");
-#endif
-    }
-
-    // ── Leaderboard ─────────────────────────────────────────────────────
-    GameMode leaderboardCurrentMode = GameMode.Heart;
-
-    public void ShowLeaderboardScreen(GameMode mode = GameMode.Heart)
-    {
-        SetAllScreens(leaderboard: true);
-        leaderboardCurrentMode = mode;
-        PopulateLeaderboard(mode);
-        UpdateLeaderboardTabHighlight();
-    }
-
-    void PopulateLeaderboard(GameMode mode)
-    {
-        if (leaderboardContent == null) return;
-        ClearLeaderboardContent();
-        ShowLoadingText();
-
-        FirestoreLeaderboard.FetchLeaderboard(mode.ToString(), 10, entries =>
-        {
-            ClearLeaderboardContent();
-            if (entries == null || entries.Count == 0)
-            {
-                ShowEmptyText();
-                return;
-            }
-            for (int i = 0; i < entries.Count; i++)
-                CreateLeaderboardRow(i + 1, entries[i], mode);
-        });
-    }
-
-    void ClearLeaderboardContent()
-    {
-        if (leaderboardContent == null) return;
-        for (int i = leaderboardContent.childCount - 1; i >= 0; i--)
-            Destroy(leaderboardContent.GetChild(i).gameObject);
-    }
-
-    void ShowLoadingText()
-    {
-        var go = new GameObject("Loading", typeof(RectTransform));
-        go.transform.SetParent(leaderboardContent, false);
-        var tmp = go.AddComponent<TextMeshProUGUI>();
-        tmp.text = "Loading...";
-        tmp.fontSize = 24;
-        tmp.fontStyle = FontStyles.Bold;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = new Color(0.3f, 0.15f, 0.15f);
-        var rt = (RectTransform)go.transform;
-        rt.anchorMin = new Vector2(0, 1);
-        rt.anchorMax = new Vector2(1, 1);
-        rt.sizeDelta = new Vector2(0, 50);
-    }
-
-    void ShowEmptyText()
-    {
-        var go = new GameObject("Empty", typeof(RectTransform));
-        go.transform.SetParent(leaderboardContent, false);
-        var tmp = go.AddComponent<TextMeshProUGUI>();
-        tmp.text = LocalizationManager.L("lb_empty", "No records yet");
-        tmp.fontSize = 24;
-        tmp.fontStyle = FontStyles.Bold;
-        tmp.alignment = TextAlignmentOptions.Center;
-        tmp.color = new Color(0.5f, 0.35f, 0.35f);
-        var rt = (RectTransform)go.transform;
-        rt.anchorMin = new Vector2(0, 1);
-        rt.anchorMax = new Vector2(1, 1);
-        rt.sizeDelta = new Vector2(0, 50);
-    }
-
-    void CreateLeaderboardRow(int rank, LeaderboardEntry entry, GameMode mode)
-    {
-        var rowGO = new GameObject("Row_" + rank, typeof(RectTransform));
-        rowGO.transform.SetParent(leaderboardContent, false);
-        var rt = (RectTransform)rowGO.transform;
-        rt.anchorMin = new Vector2(0, 1);
-        rt.anchorMax = new Vector2(1, 1);
-        rt.sizeDelta = new Vector2(0, 55);
-
-        var layout = rowGO.AddComponent<HorizontalLayoutGroup>();
-        layout.childAlignment = TextAnchor.MiddleLeft;
-        layout.spacing = 8;
-        layout.childControlWidth = true;
-        layout.childControlHeight = true;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = true;
-        layout.padding = new RectOffset(20, 20, 0, 0);
-
-        Color textColor = new Color(0.3f, 0.15f, 0.15f);
-        Color rankColor = rank <= 3 ? new Color(0.6f, 0.25f, 0.05f) : textColor;
-        bool isEndless = mode == GameMode.Endless;
-        string levelStr = isEndless
-            ? LocalizationManager.LFmt("lb_tier_fmt", "Tier {0}", entry.level)
-            : LocalizationManager.LFmt("lb_level_fmt", "Lv.{0}", entry.level);
-
-        AddRowCell(rowGO.transform, LocalizationManager.LFmt("lb_rank", "#{0}", rank), 60, 0, rankColor, TextAlignmentOptions.Center, rank <= 3 ? 26 : 22);
-        AddRowCell(rowGO.transform, entry.playerName, 0, 1, textColor, TextAlignmentOptions.Left, 22);
-        AddRowCell(rowGO.transform, LocalizationManager.LFmt("lb_score_fmt", "{0} coins", entry.score), 180, 0, rankColor, TextAlignmentOptions.Right, 22);
-        AddRowCell(rowGO.transform, levelStr, 80, 0, textColor, TextAlignmentOptions.Center, 20);
-        AddRowCell(rowGO.transform, LocalizationManager.LFmt("lb_deliveries_fmt", "{0} deliveries", entry.deliveries), 140, 0, textColor, TextAlignmentOptions.Center, 18);
-        AddRowCell(rowGO.transform, entry.date, 140, 0, new Color(0.35f, 0.2f, 0.2f), TextAlignmentOptions.Right, 18);
-    }
-
-    void AddRowCell(Transform parent, string text, float prefWidth, float flexWidth, Color color, TextAlignmentOptions align, float fontSize)
-    {
-        var go = new GameObject("Cell", typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var tmp = go.AddComponent<TextMeshProUGUI>();
-        tmp.text = text;
-        tmp.fontSize = fontSize;
-        tmp.fontStyle = FontStyles.Bold;
-        tmp.color = color;
-        tmp.alignment = align;
-        tmp.overflowMode = TextOverflowModes.Ellipsis;
-        var le = go.AddComponent<LayoutElement>();
-        if (prefWidth > 0) le.preferredWidth = prefWidth;
-        le.flexibleWidth = flexWidth;
-    }
-
-    void UpdateLeaderboardTabHighlight()
-    {
-        if (leaderboardModeTabs == null) return;
-        GameMode[] modes = { GameMode.Heart, GameMode.Rush, GameMode.Endless, GameMode.HeartExtreme, GameMode.RushExtreme };
-        for (int i = 0; i < leaderboardModeTabs.Length && i < modes.Length; i++)
-        {
-            var txt = leaderboardModeTabs[i].GetComponentInChildren<TextMeshProUGUI>();
-            if (txt != null)
-                txt.color = modes[i] == leaderboardCurrentMode ? new Color(1f, 0.85f, 0.1f) : Color.white;
-        }
-    }
-
-    void UpdateLanguageButtonText()
-    {
-        if (languageButtonText == null) return;
-        bool isEng = LocalizationManager.Instance == null || LocalizationManager.Instance.CurrentLanguage == LocalizationManager.Language.English;
-        languageButtonText.text = isEng
-            ? LocalizationManager.L("lang_current_en", "Language: EN")
-            : LocalizationManager.L("lang_current_th", "ภาษา: TH");
-    }
-
-    // ── helpers ──────────────────────────────────────────────────────────────
-
-    static void SetChildText(GameObject parent, string path, string text)
-    {
-        var child = parent.transform.Find(path);
-        if (child == null) return;
-        var tmp = child.GetComponent<TextMeshProUGUI>();
-        if (tmp != null) tmp.text = text;
-    }
-
-    void SetText(TextMeshProUGUI t, string key)
-    {
-        if (t == null) return;
-        if (LocalizationManager.Instance == null) return;
-        string v = LocalizationManager.Instance.Get(key);
-        if (!string.IsNullOrEmpty(v)) t.text = v;
-    }
-
-    void SetButtonLabel(Button b, string key)
-    {
-        if (b == null) return;
-        var t = b.GetComponentInChildren<TextMeshProUGUI>();
-        if (t == null) return;
-        if (LocalizationManager.Instance == null) return;
-        string v = LocalizationManager.Instance.Get(key);
-        if (!string.IsNullOrEmpty(v)) t.text = v;
-    }
-
-    public void RefreshLocalization()
-    {
-        // HUD
-        UpdateLanguageButtonText();
-        if (GameManager.Instance != null && levelText != null)
-            GameManager.Instance.UpdateLevelDisplay();
-
-        // Static screen texts
-        SetText(startTitleText,          "start_title");
-        SetText(startSubtitleText,       "start_subtitle");
-        SetText(settingsTitleText,       "settings_title");
-        SetText(volumeLabelText,         "settings_volume");
-        SetText(modeSelectTitleText,     "select_mode_title");
-        SetText(rushModeDescText,        "mode_rush_desc");
-        SetText(heartModeDescText,      "mode_heart_desc");
-        SetText(endlessModeDescText,     "mode_endless_desc");
-        SetText(heartExtremeDescText,    "mode_heart_extreme_desc");
-        SetText(rushExtremeDescText,     "mode_rush_extreme_desc");
-        SetText(standardHeaderText,     "mode_section_standard");
-        SetText(extremeHeaderText,      "mode_section_extreme");
-        SetText(pauseTitleText,          "pause_title");
-        SetText(pauseHintText,           "pause_hint");
-        SetText(levelCompleteTitleText,  "lc_title");
-        SetText(victoryTitleText,        "vic_title");
-        SetText(victorySubtitleText,     "vic_subtitle");
-        SetText(endlessTitleText,        "endless_title");
-        SetText(levelSelectTitleText,    "level_select_title");
-        SetText(carSelectTitleText,      "car_select_title");
-        SetText(bgmLabelText,           "settings_bgm");
-        SetText(sfxLabelText,           "settings_sfx");
-        SetText(zoneLabelOpacityLabel,  "settings_zone_labels");
-        UpdateFullscreenButtonLabel();
-
-        // Login screen
-        SetText(loginTitleText,         "login_title");
-        SetText(loginSubtitleText,      "login_subtitle");
-
-        // Button labels
-        SetButtonLabel(loginConfirmButton,       "btn_confirm");
-        SetButtonLabel(googleSignInButton,       "auth_google");
-        SetButtonLabel(guestSignInButton,        "auth_guest");
-        SetButtonLabel(loginBackButton,          "btn_back");
-        SetButtonLabel(startButton,              "btn_start");
-        SetButtonLabel(retryButton,              "btn_retry");
-        SetButtonLabel(nextLevelButton,          "btn_go_next");
-        SetButtonLabel(playAgainButton,          "btn_play_again");
-        SetButtonLabel(resumeButton,             "btn_resume");
-        SetButtonLabel(restartButton,            "btn_restart");
-        SetButtonLabel(selectModeFromPauseButton,"btn_select_mode");
-        SetButtonLabel(settingsButton,           "btn_settings");
-        SetButtonLabel(startSettingsButton,      "btn_settings");
-        SetButtonLabel(closeSettingsButton,      "btn_close");
-        UpdateGoogleLinkStatus();
-        SetButtonLabel(rushModeButton,           "mode_rush");
-        SetButtonLabel(heartModeButton,         "mode_heart");
-        SetButtonLabel(endlessModeButton,        "mode_endless");
-        SetButtonLabel(heartExtremeModeButton,   "mode_heart_extreme");
-        SetButtonLabel(rushExtremeModeButton,    "mode_rush_extreme");
-        SetButtonLabel(endlessRetryButton,       "btn_retry");
-        SetButtonLabel(endlessSelectModeButton,  "btn_select_mode");
-        SetButtonLabel(modeBackToStartButton,    "btn_back");
-        SetButtonLabel(carSelectBackButton,      "btn_back");
-        SetButtonLabel(startCarSelectButton,     "car_select_title");
-        SetText(leaderboardTitleText,            "lb_title");
-        SetButtonLabel(leaderboardBackButton,    "btn_back");
-        SetButtonLabel(startLeaderboardButton,         "btn_leaderboard");
-        SetButtonLabel(modeSelectLeaderboardButton,    "btn_leaderboard");
-        SetButtonLabel(gameOverLeaderboardButton,      "btn_leaderboard");
-        SetButtonLabel(levelCompleteLeaderboardButton, "btn_leaderboard");
-        SetButtonLabel(victoryLeaderboardButton,       "btn_leaderboard");
-        SetButtonLabel(endlessLeaderboardButton,       "btn_leaderboard");
-        if (leaderboardModeTabs != null)
-        {
-            string[] tabKeys = { "lb_mode_heart", "lb_mode_rush", "lb_mode_endless", "lb_mode_heart_extreme", "lb_mode_rush_extreme" };
-            for (int i = 0; i < leaderboardModeTabs.Length && i < tabKeys.Length; i++)
-                SetButtonLabel(leaderboardModeTabs[i], tabKeys[i]);
-        }
-
-        // Refresh level-select lock and back button labels
-        if (levelButtons != null)
-        {
-            string lockedStr = LocalizationManager.L("btn_locked", "LOCKED");
-            foreach (var b in levelButtons)
-            {
-                if (b == null) continue;
-                var lockT = b.transform.Find("Lock/Text");
-                if (lockT != null) { var tmp = lockT.GetComponent<TextMeshProUGUI>(); if (tmp != null) tmp.text = lockedStr; }
-            }
-            if (levelSelectScreen != null)
-            {
-                SetChildText(levelSelectScreen, "BackBtn/Text", LocalizationManager.L("btn_back", "BACK"));
-                SetChildText(levelSelectScreen, "Title",        LocalizationManager.L("level_select_title", "SELECT LEVEL"));
-            }
-        }
-
-        // Refresh order if playing
-        if (GameManager.Instance != null &&
-            GameManager.Instance.State == GameState.Playing &&
-            !string.IsNullOrEmpty(GameManager.Instance.CurrentDestination))
-            UpdateOrder(GameManager.Instance.CurrentDestination, GameManager.Instance.IsRushOrder);
-    }
-
     public void ShowPauseScreen()
     {
         if (pauseScreen != null) pauseScreen.SetActive(true);
@@ -1444,6 +468,8 @@ public class UIManager : MonoBehaviour
         if (pauseScreen != null)          pauseScreen.SetActive(false);
         if (settingsScreen != null)       settingsScreen.SetActive(false);
     }
+
+    // ── HUD updates ─────────────────────────────────────────────────────────
 
     public void UpdateTimer(float time)
     {
@@ -1528,6 +554,20 @@ public class UIManager : MonoBehaviour
         StartCoroutine(ScorePopupRoutine(points));
     }
 
+    public void UpdateRushCountdown(int seconds)
+    {
+        if (levelCompleteCountdownText != null)
+            levelCompleteCountdownText.text = LocalizationManager.LFmt("rush_countdown", "Auto-advancing in {0}...", seconds);
+    }
+
+    public void HideRushCountdown()
+    {
+        if (levelCompleteCountdownText != null)
+            levelCompleteCountdownText.gameObject.SetActive(false);
+    }
+
+    // ── Coroutines ──────────────────────────────────────────────────────────
+
     IEnumerator ScorePopupRoutine(int points)
     {
         var go = new GameObject("ScorePopup", typeof(RectTransform));
@@ -1565,7 +605,6 @@ public class UIManager : MonoBehaviour
         feedbackText.text = message;
         feedbackText.gameObject.SetActive(true);
 
-        // Fade in 0.12s
         for (float t = 0f; t < 0.12f; t += Time.unscaledDeltaTime)
         {
             feedbackText.color = new Color(base_.r, base_.g, base_.b, t / 0.12f);
@@ -1575,7 +614,6 @@ public class UIManager : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.65f);
 
-        // Fade out 0.30s
         for (float t = 0f; t < 0.30f; t += Time.unscaledDeltaTime)
         {
             feedbackText.color = new Color(base_.r, base_.g, base_.b, 1f - t / 0.30f);
@@ -1583,18 +621,6 @@ public class UIManager : MonoBehaviour
         }
         feedbackText.gameObject.SetActive(false);
         feedbackCoroutine = null;
-    }
-
-    public void UpdateRushCountdown(int seconds)
-    {
-        if (levelCompleteCountdownText != null)
-            levelCompleteCountdownText.text = LocalizationManager.LFmt("rush_countdown", "Auto-advancing in {0}...", seconds);
-    }
-
-    public void HideRushCountdown()
-    {
-        if (levelCompleteCountdownText != null)
-            levelCompleteCountdownText.gameObject.SetActive(false);
     }
 
     Coroutine crashFlashCoroutine;
@@ -1620,7 +646,7 @@ public class UIManager : MonoBehaviour
         crashFlashImage.gameObject.SetActive(false);
     }
 
-    // ── Level Select ──────────────────────────────────────────────────────────
+    // ── Level Select ────────────────────────────────────────────────────────
 
     public void ShowLevelSelectScreen(GameMode mode)
     {
@@ -1632,7 +658,7 @@ public class UIManager : MonoBehaviour
     void RefreshLevelButtons(GameMode mode)
     {
         if (levelButtons == null) return;
-        int unlocked = GameManager.GetUnlockedLevel(mode);
+        int unlocked = LevelData.GetUnlockedLevel(mode);
         string timeFmt  = LocalizationManager.L("level_select_time_fmt",  "{0}s");
         string scoreFmt = LocalizationManager.L("level_select_score_fmt", "{0}pts");
         bool showLives = mode == GameMode.Heart || mode == GameMode.HeartExtreme;
@@ -1649,7 +675,7 @@ public class UIManager : MonoBehaviour
             var subTMP = subT.GetComponent<TextMeshProUGUI>();
             if (subTMP == null) continue;
 
-            var level = GameManager.Levels[i];
+            var level = LevelData.Levels[i];
             string info = string.Format(timeFmt, (int)level.time) + "  " + string.Format(scoreFmt, level.scoreNeeded);
             if (showLives) info += "  \u2665" + level.lives;
             subTMP.text = info;
@@ -1661,14 +687,12 @@ public class UIManager : MonoBehaviour
         if (levelSelectScreen == null) return;
         if (levelButtons != null && levelButtons.Length > 0) return;
 
-        // Load buttons from scene (only Btn* names, exclude BackBtn)
         var allBtns = levelSelectScreen.GetComponentsInChildren<Button>(true);
         var list = new System.Collections.Generic.List<Button>();
         foreach (var b in allBtns)
             if (b.gameObject.name.StartsWith("Btn")) list.Add(b);
         levelButtons = list.ToArray();
 
-        // Wire onClick listeners
         for (int i = 0; i < levelButtons.Length; i++)
         {
             int levelIdx = i;
@@ -1677,7 +701,6 @@ public class UIManager : MonoBehaviour
             AddClickSound(levelButtons[i]);
         }
 
-        // Wire back button
         var backT = levelSelectScreen.transform.Find("BackBtn");
         if (backT != null)
         {
@@ -1691,125 +714,147 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void ShowTutorialHints()
+    // ── Localization ────────────────────────────────────────────────────────
+
+    public void RefreshLocalization()
     {
-        ShowFeedback(LocalizationManager.L("tutorial_pickup", "Pick up packages here!"), true);
-        StartCoroutine(DelayedTutorialHint(LocalizationManager.L("tutorial_deliver", "Deliver to the glowing zone!")));
+        UpdateLanguageButtonText();
+        if (GameManager.Instance != null && levelText != null)
+            GameManager.Instance.UpdateLevelDisplay();
+
+        SetText(startTitleText,          "start_title");
+        SetText(startSubtitleText,       "start_subtitle");
+        SetText(settingsTitleText,       "settings_title");
+        SetText(volumeLabelText,         "settings_volume");
+        SetText(modeSelectTitleText,     "select_mode_title");
+        SetText(rushModeDescText,        "mode_rush_desc");
+        SetText(heartModeDescText,      "mode_heart_desc");
+        SetText(endlessModeDescText,     "mode_endless_desc");
+        SetText(heartExtremeDescText,    "mode_heart_extreme_desc");
+        SetText(rushExtremeDescText,     "mode_rush_extreme_desc");
+        SetText(standardHeaderText,     "mode_section_standard");
+        SetText(extremeHeaderText,      "mode_section_extreme");
+        SetText(pauseTitleText,          "pause_title");
+        SetText(pauseHintText,           "pause_hint");
+        SetText(levelCompleteTitleText,  "lc_title");
+        SetText(victoryTitleText,        "vic_title");
+        SetText(victorySubtitleText,     "vic_subtitle");
+        SetText(endlessTitleText,        "endless_title");
+        SetText(levelSelectTitleText,    "level_select_title");
+        SetText(carSelectTitleText,      "car_select_title");
+        SetText(bgmLabelText,           "settings_bgm");
+        SetText(sfxLabelText,           "settings_sfx");
+        SetText(zoneLabelOpacityLabel,  "settings_zone_labels");
+        UpdateFullscreenButtonLabel();
+
+        SetText(loginTitleText,         "login_title");
+        SetText(loginSubtitleText,      "login_subtitle");
+
+        RefreshButtonLocalization();
+        RefreshLevelSelectLocalization();
+
+        if (GameManager.Instance != null &&
+            GameManager.Instance.State == GameState.Playing &&
+            !string.IsNullOrEmpty(GameManager.Instance.CurrentDestination))
+            UpdateOrder(GameManager.Instance.CurrentDestination, GameManager.Instance.IsRushOrder);
     }
 
-    IEnumerator DelayedTutorialHint(string message)
+    void RefreshButtonLocalization()
     {
-        yield return new WaitForSecondsRealtime(2f);
-        ShowFeedback(message, true);
-    }
-
-    // ── Power-up HUD ──────────────────────────────────────────────────────────
-
-    void BuildPowerUpHudIfNeeded()
-    {
-        if (powerUpHudPanel != null) return;
-        if (gameplayUI == null) return;
-
-        var panel = new GameObject("PowerUpHudPanel", typeof(RectTransform));
-        panel.transform.SetParent(gameplayUI.transform, false);
-        AnchorRect(panel, new Vector2(0f, 0.68f), new Vector2(0.24f, 0.872f));
-
-        var bg = panel.AddComponent<Image>();
-        bg.color = new Color(0f, 0f, 0f, 0.55f);
-
-        var vlg = panel.AddComponent<UnityEngine.UI.VerticalLayoutGroup>();
-        vlg.childAlignment = TextAnchor.UpperLeft;
-        vlg.childForceExpandWidth = true;
-        vlg.childForceExpandHeight = false;
-        vlg.spacing = 2f;
-        vlg.padding = new RectOffset(8, 4, 4, 4);
-
-        var fitter = panel.AddComponent<UnityEngine.UI.ContentSizeFitter>();
-        fitter.verticalFit = UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
-
-        powerUpHudPanel = panel;
-        panel.SetActive(false);
-    }
-
-    TextMeshProUGUI GetOrCreatePowerUpSlot(string typeName)
-    {
-        if (powerUpSlotTexts.ContainsKey(typeName))
-            return powerUpSlotTexts[typeName];
-
-        if (powerUpHudPanel == null) BuildPowerUpHudIfNeeded();
-        if (powerUpHudPanel == null) return null;
-
-        var slotGO = new GameObject($"Slot_{typeName}", typeof(RectTransform));
-        slotGO.transform.SetParent(powerUpHudPanel.transform, false);
-        var le = slotGO.AddComponent<UnityEngine.UI.LayoutElement>();
-        le.preferredHeight = 36f;
-        var tmp = slotGO.AddComponent<TextMeshProUGUI>();
-        tmp.fontSize    = 28;
-        tmp.fontStyle   = FontStyles.Bold;
-        tmp.alignment   = TextAlignmentOptions.MidlineLeft;
-        tmp.color       = Color.white;
-        tmp.raycastTarget = false;
-        powerUpSlotTexts[typeName] = tmp;
-        return tmp;
-    }
-
-    void HandlePowerUpActivated(string typeName, float duration)
-    {
-        string label = LocalizationManager.L("powerup_timer_" + typeName, typeName);
-        if (powerUpTimerCoroutines.ContainsKey(typeName) && powerUpTimerCoroutines[typeName] != null)
-            StopCoroutine(powerUpTimerCoroutines[typeName]);
-        powerUpTimerCoroutines[typeName] = StartCoroutine(PowerUpTimerRoutine(typeName, label, duration));
-    }
-
-    void HandlePowerUpDeactivated(string typeName)
-    {
-        if (powerUpTimerCoroutines.ContainsKey(typeName) && powerUpTimerCoroutines[typeName] != null)
+        SetButtonLabel(loginConfirmButton,       "btn_confirm");
+        SetButtonLabel(googleSignInButton,       "auth_google");
+        SetButtonLabel(guestSignInButton,        "auth_guest");
+        SetButtonLabel(loginBackButton,          "btn_back");
+        SetButtonLabel(startButton,              "btn_start");
+        SetButtonLabel(retryButton,              "btn_retry");
+        SetButtonLabel(nextLevelButton,          "btn_go_next");
+        SetButtonLabel(playAgainButton,          "btn_play_again");
+        SetButtonLabel(resumeButton,             "btn_resume");
+        SetButtonLabel(restartButton,            "btn_restart");
+        SetButtonLabel(selectModeFromPauseButton,"btn_select_mode");
+        SetButtonLabel(settingsButton,           "btn_settings");
+        SetButtonLabel(startSettingsButton,      "btn_settings");
+        SetButtonLabel(closeSettingsButton,      "btn_close");
+        UpdateGoogleLinkStatus();
+        SetButtonLabel(rushModeButton,           "mode_rush");
+        SetButtonLabel(heartModeButton,         "mode_heart");
+        SetButtonLabel(endlessModeButton,        "mode_endless");
+        SetButtonLabel(heartExtremeModeButton,   "mode_heart_extreme");
+        SetButtonLabel(rushExtremeModeButton,    "mode_rush_extreme");
+        SetButtonLabel(endlessRetryButton,       "btn_retry");
+        SetButtonLabel(endlessSelectModeButton,  "btn_select_mode");
+        SetButtonLabel(modeBackToStartButton,    "btn_back");
+        SetButtonLabel(carSelectBackButton,      "btn_back");
+        SetButtonLabel(startCarSelectButton,     "car_select_title");
+        SetText(leaderboardTitleText,            "lb_title");
+        SetButtonLabel(leaderboardBackButton,    "btn_back");
+        SetButtonLabel(startLeaderboardButton,         "btn_leaderboard");
+        SetButtonLabel(modeSelectLeaderboardButton,    "btn_leaderboard");
+        SetButtonLabel(gameOverLeaderboardButton,      "btn_leaderboard");
+        SetButtonLabel(levelCompleteLeaderboardButton, "btn_leaderboard");
+        SetButtonLabel(victoryLeaderboardButton,       "btn_leaderboard");
+        SetButtonLabel(endlessLeaderboardButton,       "btn_leaderboard");
+        if (leaderboardModeTabs != null)
         {
-            StopCoroutine(powerUpTimerCoroutines[typeName]);
-            powerUpTimerCoroutines[typeName] = null;
+            string[] tabKeys = { "lb_mode_heart", "lb_mode_rush", "lb_mode_endless", "lb_mode_heart_extreme", "lb_mode_rush_extreme" };
+            for (int i = 0; i < leaderboardModeTabs.Length && i < tabKeys.Length; i++)
+                SetButtonLabel(leaderboardModeTabs[i], tabKeys[i]);
         }
-        if (powerUpSlotTexts.ContainsKey(typeName))
-            powerUpSlotTexts[typeName].gameObject.SetActive(false);
-        RefreshPowerUpHudVisibility();
     }
 
-    IEnumerator PowerUpTimerRoutine(string typeName, string label, float duration)
+    void RefreshLevelSelectLocalization()
     {
-        var slot = GetOrCreatePowerUpSlot(typeName);
-        if (slot == null) yield break;
-
-        if (powerUpHudPanel != null) powerUpHudPanel.SetActive(true);
-        slot.gameObject.SetActive(true);
-
-        float remaining = duration;
-        while (remaining > 0f)
+        if (levelButtons != null)
         {
-            slot.text = $"{label}  {remaining:0.0}s";
-            float lerp = remaining / duration;
-            slot.color = Color.Lerp(new Color(1f, 0.4f, 0.2f), Color.white, lerp);
-            yield return null;
-            remaining -= Time.deltaTime;
-        }
-
-        slot.gameObject.SetActive(false);
-        if (powerUpTimerCoroutines.ContainsKey(typeName))
-            powerUpTimerCoroutines[typeName] = null;
-        RefreshPowerUpHudVisibility();
-    }
-
-    void RefreshPowerUpHudVisibility()
-    {
-        if (powerUpHudPanel == null) return;
-        bool anyActive = false;
-        foreach (var kv in powerUpSlotTexts)
-        {
-            if (kv.Value != null && kv.Value.gameObject.activeSelf)
+            string lockedStr = LocalizationManager.L("btn_locked", "LOCKED");
+            foreach (var b in levelButtons)
             {
-                anyActive = true;
-                break;
+                if (b == null) continue;
+                var lockT = b.transform.Find("Lock/Text");
+                if (lockT != null) { var tmp = lockT.GetComponent<TextMeshProUGUI>(); if (tmp != null) tmp.text = lockedStr; }
+            }
+            if (levelSelectScreen != null)
+            {
+                SetChildText(levelSelectScreen, "BackBtn/Text", LocalizationManager.L("btn_back", "BACK"));
+                SetChildText(levelSelectScreen, "Title",        LocalizationManager.L("level_select_title", "SELECT LEVEL"));
             }
         }
-        powerUpHudPanel.SetActive(anyActive);
+    }
+
+    // ── Utility helpers ─────────────────────────────────────────────────────
+
+    static void SetChildText(GameObject parent, string path, string text)
+    {
+        var child = parent.transform.Find(path);
+        if (child == null) return;
+        var tmp = child.GetComponent<TextMeshProUGUI>();
+        if (tmp != null) tmp.text = text;
+    }
+
+    void SetText(TextMeshProUGUI t, string key)
+    {
+        if (t == null) return;
+        if (LocalizationManager.Instance == null) return;
+        string v = LocalizationManager.Instance.Get(key);
+        if (!string.IsNullOrEmpty(v)) t.text = v;
+    }
+
+    void SetButtonLabel(Button b, string key)
+    {
+        if (b == null) return;
+        var t = b.GetComponentInChildren<TextMeshProUGUI>();
+        if (t == null) return;
+        if (LocalizationManager.Instance == null) return;
+        string v = LocalizationManager.Instance.Get(key);
+        if (!string.IsNullOrEmpty(v)) t.text = v;
+    }
+
+    TextMeshProUGUI FindOrCreateBestText(GameObject screen, string name)
+    {
+        if (screen == null) return null;
+        var existing = screen.transform.Find(name);
+        if (existing != null) return existing.GetComponent<TextMeshProUGUI>();
+        return null;
     }
 
     static void AnchorFull(GameObject go)
@@ -1826,138 +871,5 @@ public class UIManager : MonoBehaviour
         rt.anchorMin = min;
         rt.anchorMax = max;
         rt.offsetMin = rt.offsetMax = Vector2.zero;
-    }
-
-    // ── Best score helper ──────────────────────────────────────────────────
-
-    TextMeshProUGUI FindOrCreateBestText(GameObject screen, string name)
-    {
-        if (screen == null) return null;
-        var existing = screen.transform.Find(name);
-        if (existing != null) return existing.GetComponent<TextMeshProUGUI>();
-        return null;
-    }
-
-    // ── Settings extras (BGM/SFX sliders + fullscreen) ─────────────────────
-
-    void WireSettingsListeners()
-    {
-        if (settingsScreen == null) return;
-
-        // Wire zone label opacity slider listener
-        if (zoneLabelOpacitySlider != null)
-        {
-            zoneLabelOpacitySlider.onValueChanged.RemoveAllListeners();
-            zoneLabelOpacitySlider.value = PlayerPrefs.GetFloat("ZoneLabelOpacity", 1f);
-            zoneLabelOpacitySlider.onValueChanged.AddListener(v =>
-            {
-                PlayerPrefs.SetFloat("ZoneLabelOpacity", v);
-                ZoneLabelLocalizer.SetGlobalOpacity(v);
-            });
-            ZoneLabelLocalizer.SetGlobalOpacity(zoneLabelOpacitySlider.value);
-        }
-
-        // Wire fullscreen button
-        if (fullscreenToggleButton != null)
-        {
-            fullscreenToggleButton.onClick.RemoveAllListeners();
-            fullscreenToggleButton.onClick.AddListener(() => { Screen.fullScreen = !Screen.fullScreen; UpdateFullscreenButtonLabel(); });
-            AddClickSound(fullscreenToggleButton);
-            UpdateFullscreenButtonLabel();
-        }
-    }
-
-    static void ShiftChild(GameObject parent, string childName, float newY)
-    {
-        var child = parent.transform.Find(childName);
-        if (child == null) return;
-        var rt = child.GetComponent<RectTransform>();
-        rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, newY);
-    }
-
-    // Settings slider/label helpers removed — now created by DeliveryGameSetup.cs
-
-    void UpdateFullscreenButtonLabel()
-    {
-        if (fullscreenLabelText == null) return;
-        string label = LocalizationManager.L("settings_fullscreen", "Fullscreen");
-        fullscreenLabelText.text = Screen.fullScreen ? "[ON] " + label : "[OFF] " + label;
-    }
-
-    // ── Interactive tutorial ────────────────────────────────────────────────
-
-    public void StartInteractiveTutorial()
-    {
-        StartCoroutine(InteractiveTutorialRoutine());
-    }
-
-    IEnumerator InteractiveTutorialRoutine()
-    {
-        var gm = GameManager.Instance;
-        if (gm == null) yield break;
-
-        Canvas canvas = null;
-        foreach (var c in Object.FindObjectsByType<Canvas>(FindObjectsSortMode.None))
-            if (c.renderMode == RenderMode.ScreenSpaceOverlay) { canvas = c; break; }
-        if (canvas == null) yield break;
-
-        // Build tutorial bar at bottom of screen
-        var overlayGO = new GameObject("TutorialOverlay", typeof(RectTransform));
-        overlayGO.transform.SetParent(canvas.transform, false);
-        AnchorRect(overlayGO, new Vector2(0f, 0f), new Vector2(1f, 0.12f));
-        var bg = overlayGO.AddComponent<Image>();
-        bg.color = new Color(0f, 0f, 0f, 0.72f);
-
-        var textGO = new GameObject("InstrText", typeof(RectTransform));
-        textGO.transform.SetParent(overlayGO.transform, false);
-        AnchorRect(textGO, new Vector2(0.02f, 0f), new Vector2(0.78f, 1f));
-        var instrText = textGO.AddComponent<TextMeshProUGUI>();
-        instrText.fontSize = 28;
-        instrText.alignment = TextAlignmentOptions.MidlineLeft;
-        instrText.color = new Color(1f, 1f, 0.6f);
-        instrText.margin = new Vector4(12f, 0f, 4f, 0f);
-        instrText.raycastTarget = false;
-
-        var skipGO = new GameObject("SkipBtn", typeof(RectTransform));
-        skipGO.transform.SetParent(overlayGO.transform, false);
-        AnchorRect(skipGO, new Vector2(0.80f, 0.15f), new Vector2(0.98f, 0.85f));
-        var skipImg = skipGO.AddComponent<Image>();
-        skipImg.color = new Color(0.35f, 0.35f, 0.40f, 1f);
-        var skipBtn = skipGO.AddComponent<Button>();
-        skipBtn.targetGraphic = skipImg;
-        var skipTxtGO = new GameObject("Text", typeof(RectTransform));
-        skipTxtGO.transform.SetParent(skipGO.transform, false);
-        AnchorFull(skipTxtGO);
-        var skipTmp = skipTxtGO.AddComponent<TextMeshProUGUI>();
-        skipTmp.text = LocalizationManager.L("btn_skip", "SKIP");
-        skipTmp.fontSize = 22;
-        skipTmp.fontStyle = FontStyles.Bold;
-        skipTmp.alignment = TextAlignmentOptions.Center;
-        skipTmp.color = Color.white;
-        skipTmp.raycastTarget = false;
-
-        bool skipped = false;
-        skipBtn.onClick.AddListener(() => { skipped = true; });
-
-        instrText.text = LocalizationManager.L("tutorial_pickup", "Pick up packages here!");
-        overlayGO.SetActive(true);
-        yield return new WaitUntil(() => skipped || gm.player == null || gm.player.HasPackage);
-
-        if (!skipped)
-        {
-            instrText.text = LocalizationManager.L("tutorial_deliver", "Deliver to the glowing zone!");
-            yield return new WaitUntil(() => skipped || gm.player == null || !gm.player.HasPackage);
-
-            if (!skipped)
-            {
-                instrText.text = LocalizationManager.L("tutorial_done", "Great job! You're ready!");
-                yield return new WaitForSecondsRealtime(1.8f);
-            }
-        }
-
-        PlayerPrefs.SetInt("TutorialDone", 1);
-        PlayerPrefs.Save();
-        overlayGO.SetActive(false);
-        Destroy(overlayGO);
     }
 }

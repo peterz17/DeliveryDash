@@ -92,28 +92,20 @@ public class AudioManager : MonoBehaviour
         PlaySFX(clip, 0.75f);
     }
 
-    public void SetMasterVolume(float v)
-    {
-        masterVolume = Mathf.Clamp01(v);
-        PlayerPrefs.SetFloat("masterVolume", masterVolume);
-        if (bgmSrc != null) bgmSrc.volume = 0.32f * bgmVolume * masterVolume;
-    }
-
     public float MasterVolume => masterVolume;
     public float BGMVolume => bgmVolume;
     public float SFXVolume => sfxVolume;
 
-    public void SetBGMVolume(float v)
-    {
-        bgmVolume = Mathf.Clamp01(v);
-        PlayerPrefs.SetFloat("bgmVolume", bgmVolume);
-        if (bgmSrc != null) bgmSrc.volume = 0.32f * bgmVolume * masterVolume;
-    }
+    public void SetMasterVolume(float v) => SetVolume(ref masterVolume, "masterVolume", v, true);
+    public void SetBGMVolume(float v)    => SetVolume(ref bgmVolume,    "bgmVolume",    v, true);
+    public void SetSFXVolume(float v)    => SetVolume(ref sfxVolume,    "sfxVolume",    v, false);
 
-    public void SetSFXVolume(float v)
+    void SetVolume(ref float field, string prefsKey, float value, bool updateBGM)
     {
-        sfxVolume = Mathf.Clamp01(v);
-        PlayerPrefs.SetFloat("sfxVolume", sfxVolume);
+        field = Mathf.Clamp01(value);
+        PlayerPrefs.SetFloat(prefsKey, field);
+        if (updateBGM && bgmSrc != null)
+            bgmSrc.volume = 0.32f * bgmVolume * masterVolume;
     }
 
     // ── BGM ──────────────────────────────────────────────────────────────────

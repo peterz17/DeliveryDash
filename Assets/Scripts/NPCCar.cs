@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class NPCCar : MonoBehaviour
 {
+    enum SwerveState { None, LateralOut, Forward, LateralBack }
+
     public float speed = 3f;
     public float baseSpeed;
     public float rangeMin = -7f;
@@ -17,6 +19,14 @@ public class NPCCar : MonoBehaviour
     int dir = 1;
     float pauseTimer;
     float nextPauseCountdown;
+    int instanceId;
+
+    SwerveState swerveState;
+    int swerveSign;
+    float swerveTraveled;
+    float activeSwerveLen;
+    bool avoidingPickupZone;
+
     const float AvgPauseInterval = 7f;
     const float MaxPauseDuration = 1.0f;
     const float LookAheadDist = 1.5f;
@@ -25,12 +35,6 @@ public class NPCCar : MonoBehaviour
     const float SwerveSpeedMul = 1.4f;
     const float ForwardDuringLateral = 5.0f;
     const float PickupForbiddenRadius = 2.2f;
-    int instanceId;
-    int swervePhase;       // 0=none, 1=lateral out, 2=forward, 3=lateral back
-    int swerveSign;
-    float swerveTraveled;
-    float activeSwerveLen; // actual lateral distance for current swerve
-    bool avoidingPickupZone;
 
     void Awake()
     {
@@ -38,7 +42,6 @@ public class NPCCar : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         spriteChild = transform.Find("Sprite");
         nextPauseCountdown = AvgPauseInterval * (0.5f + Random.value);
-
         instanceId = gameObject.GetInstanceID();
         if (isBoss) CreateBossAura();
         FitColliderToSprite();
@@ -52,8 +55,8 @@ public class NPCCar : MonoBehaviour
 
         bossAura = go.AddComponent<SpriteRenderer>();
         bossAura.sprite = SpriteFactory.AuraDisc();
-        bossAura.sortingOrder = 5; // below car sprite (order 6)
-        bossAura.color = new Color(1f, 0.2f, 0.15f, 0.45f); // red tint
+        bossAura.sortingOrder = 5;
+        bossAura.color = new Color(1f, 0.2f, 0.15f, 0.45f);
     }
 
     void FixedUpdate()
@@ -67,7 +70,6 @@ public class NPCCar : MonoBehaviour
             return;
         }
 
-        // Occasional pause behavior
         if (pauseTimer > 0f)
         {
             pauseTimer -= Time.fixedDeltaTime;
@@ -105,70 +107,24 @@ public class NPCCar : MonoBehaviour
         Vector2 lateral = moveHorizontal ? Vector2.up : Vector2.right;
         float swerveStep = speed * SwerveSpeedMul * Time.fixedDeltaTime;
 
-        // ── Active swerve ──
-        if (swervePhase > 0)
+        if (swerveState != SwerveState.None)
         {
-            swerveTraveled += swerveStep;
-
-            if (swervePhase == 1) // lateral out
-            {
-                rb.MovePosition(rb.position + lateral * swerveSign * swerveStep);
-                RotateSprite(lateral * swerveSign);
-                if (swerveTraveled >= activeSwerveLen)
-                { swerveTraveled = 0f; swervePhase = 2; }
-            }
-            else if (swervePhase == 2) // forward while offset
-            {
-                if (IsObstacleAhead())
-                { swerveTraveled = 0f; swervePhase = 3; return; }
-                rb.MovePosition(rb.position + forward * swerveStep);
-                RotateSprite(forward);
-                if (swerveTraveled >= ForwardDuringLateral)
-                { swerveTraveled = 0f; swervePhase = 3; }
-            }
-            else // phase 3: lateral back (always complete — return to lane)
-            {
-                rb.MovePosition(rb.position + lateral * -swerveSign * swerveStep);
-                RotateSprite(lateral * -swerveSign);
-                if (swerveTraveled >= activeSwerveLen)
-                { swerveTraveled = 0f; swervePhase = 0; }
-            }
+            ExecuteSwerve(forward, lateral, swerveStep);
             return;
         }
 
-        // ── Check for obstacle ahead — reverse ──
-        if (IsObstacleAhead())
-        {
-            dir = -dir;
-            return;
-        }
+        if (IsObstacleAhead()) { dir = -dir; return; }
 
-        // ── Pickup zone avoidance ──
-        if (!avoidingPickupZone)
-        {
-            float crossAxis = moveHorizontal ? rb.position.y : rb.position.x;
-            bool headingToCenter = (pos > 0 && dir < 0) || (pos < 0 && dir > 0);
-            float distToCenter = Mathf.Abs(pos);
+        if (TryAvoidPickupZone(pos, lateral)) return;
 
-            if (Mathf.Abs(crossAxis) < PickupForbiddenRadius && headingToCenter && distToCenter < PickupForbiddenRadius + 1.5f)
-            {
-                avoidingPickupZone = true;
-                int sign = crossAxis >= 0f ? 1 : -1;
-                if (Mathf.Abs(crossAxis) < 0.3f) sign = (instanceId % 2 == 0) ? 1 : -1;
-                if (TryStartSwerve(sign, lateral, PickupSwerveDist) || TryStartSwerve(-sign, lateral, PickupSwerveDist))
-                    return;
-                avoidingPickupZone = false;
-            }
-        }
-        if (avoidingPickupZone && swervePhase == 0)
+        if (avoidingPickupZone && swerveState == SwerveState.None)
             avoidingPickupZone = false;
 
-        // ── NPC ahead — try swerve, else slow down ──
         if (IsNPCAhead())
         {
             int sign = Random.value > 0.5f ? 1 : -1;
             if (!TryStartSwerve(sign, lateral) && !TryStartSwerve(-sign, lateral))
-                dir = -dir; // both sides blocked, just reverse
+                dir = -dir;
             return;
         }
 
@@ -176,12 +132,63 @@ public class NPCCar : MonoBehaviour
         RotateSprite(forward);
     }
 
+    void ExecuteSwerve(Vector2 forward, Vector2 lateral, float step)
+    {
+        swerveTraveled += step;
+
+        switch (swerveState)
+        {
+            case SwerveState.LateralOut:
+                rb.MovePosition(rb.position + lateral * swerveSign * step);
+                RotateSprite(lateral * swerveSign);
+                if (swerveTraveled >= activeSwerveLen)
+                { swerveTraveled = 0f; swerveState = SwerveState.Forward; }
+                break;
+
+            case SwerveState.Forward:
+                if (IsObstacleAhead())
+                { swerveTraveled = 0f; swerveState = SwerveState.LateralBack; return; }
+                rb.MovePosition(rb.position + forward * step);
+                RotateSprite(forward);
+                if (swerveTraveled >= ForwardDuringLateral)
+                { swerveTraveled = 0f; swerveState = SwerveState.LateralBack; }
+                break;
+
+            case SwerveState.LateralBack:
+                rb.MovePosition(rb.position + lateral * -swerveSign * step);
+                RotateSprite(lateral * -swerveSign);
+                if (swerveTraveled >= activeSwerveLen)
+                { swerveTraveled = 0f; swerveState = SwerveState.None; }
+                break;
+        }
+    }
+
+    bool TryAvoidPickupZone(float pos, Vector2 lateral)
+    {
+        if (avoidingPickupZone) return false;
+
+        float crossAxis = moveHorizontal ? rb.position.y : rb.position.x;
+        bool headingToCenter = (pos > 0 && dir < 0) || (pos < 0 && dir > 0);
+        float distToCenter = Mathf.Abs(pos);
+
+        if (Mathf.Abs(crossAxis) < PickupForbiddenRadius && headingToCenter && distToCenter < PickupForbiddenRadius + 1.5f)
+        {
+            avoidingPickupZone = true;
+            int sign = crossAxis >= 0f ? 1 : -1;
+            if (Mathf.Abs(crossAxis) < 0.3f) sign = (instanceId % 2 == 0) ? 1 : -1;
+            if (TryStartSwerve(sign, lateral, PickupSwerveDist) || TryStartSwerve(-sign, lateral, PickupSwerveDist))
+                return true;
+            avoidingPickupZone = false;
+        }
+        return false;
+    }
+
     bool TryStartSwerve(int sign, Vector2 lateral, float dist = SwerveDist)
     {
         Vector2 swerveTarget = rb.position + lateral * sign * dist;
         if (IsObstacleAt(swerveTarget)) return false;
         swerveSign = sign;
-        swervePhase = 1;
+        swerveState = SwerveState.LateralOut;
         swerveTraveled = 0f;
         activeSwerveLen = dist;
         return true;
@@ -264,7 +271,6 @@ public class NPCCar : MonoBehaviour
                 return;
             }
         }
-        // fallback: place at edge
         rb.position = moveHorizontal
             ? new Vector2(rangeMax, rb.position.y)
             : new Vector2(rb.position.x, rangeMax);
@@ -280,7 +286,6 @@ public class NPCCar : MonoBehaviour
             if (Vector2.Distance(rb.position, playerPos) < minDist) continue;
             if (!IsTooCloseToOtherNPC(minNpcDist)) return;
         }
-        // fallback: spread evenly along the lane
         float playerRoadPos = moveHorizontal ? playerPos.x : playerPos.y;
         float safePos = playerRoadPos > 0f ? rangeMin : rangeMax;
         rb.position = moveHorizontal

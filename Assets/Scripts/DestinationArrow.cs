@@ -1,8 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class DestinationArrow : MonoBehaviour
 {
-    DeliveryZone[]    zones;
+    Dictionary<string, DeliveryZone> zoneMap;
     SpriteRenderer    sr;
     Vector3           baseScale;
 
@@ -18,7 +19,14 @@ public class DestinationArrow : MonoBehaviour
 
     void Start()
     {
-        zones = Object.FindObjectsByType<DeliveryZone>(FindObjectsSortMode.None);
+        CacheZones();
+    }
+
+    void CacheZones()
+    {
+        zoneMap = new Dictionary<string, DeliveryZone>();
+        foreach (var zone in Object.FindObjectsByType<DeliveryZone>(FindObjectsSortMode.None))
+            zoneMap[zone.destinationName] = zone;
     }
 
     void Update()
@@ -32,27 +40,20 @@ public class DestinationArrow : MonoBehaviour
         string dest = GameManager.Instance.CurrentDestination;
         if (string.IsNullOrEmpty(dest)) return;
 
-        foreach (var zone in zones)
+        if (!zoneMap.TryGetValue(dest, out var zone)) return;
+
+        Vector3 dir = zone.transform.position - transform.parent.position;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+
+        if (sr != null)
         {
-            if (zone.destinationName != dest) continue;
+            var zoneSr = zone.GetComponent<SpriteRenderer>();
+            Color zoneColor = zoneSr != null ? zoneSr.color : Color.white;
 
-            // Point toward destination
-            Vector3 dir = zone.transform.position - transform.parent.position;
-            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
-            transform.rotation = Quaternion.Euler(0f, 0f, angle);
-
-            // Match zone color
-            if (sr != null)
-            {
-                var zoneSr = zone.GetComponent<SpriteRenderer>();
-                Color zoneColor = zoneSr != null ? zoneSr.color : Color.white;
-
-                // Pulse alpha and scale
-                float pulse = PulseMin + (PulseMax - PulseMin) * (Mathf.Sin(Time.time * PulseSpeed) * 0.5f + 0.5f);
-                sr.color = new Color(zoneColor.r, zoneColor.g, zoneColor.b, pulse);
-                transform.localScale = baseScale * (0.95f + 0.10f * (Mathf.Sin(Time.time * PulseSpeed) * 0.5f + 0.5f));
-            }
-            return;
+            float pulse = PulseMin + (PulseMax - PulseMin) * (Mathf.Sin(Time.time * PulseSpeed) * 0.5f + 0.5f);
+            sr.color = new Color(zoneColor.r, zoneColor.g, zoneColor.b, pulse);
+            transform.localScale = baseScale * (0.95f + 0.10f * (Mathf.Sin(Time.time * PulseSpeed) * 0.5f + 0.5f));
         }
     }
 }
