@@ -462,7 +462,7 @@ public static class DeliveryGameSetup
                         uiManager.leaderboardContent = lbCont2.transform;
 
                         var lbBack2 = MakeButton(lbGO2, "LeaderboardBackButton", "BACK",
-                            new Vector2(0.30f, 0.03f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+                            new Vector2(0.20f, 0.02f), new Vector2(0.80f, 0.10f), Vector2.zero, Vector2.zero);
                         ApplyButtonColor(lbBack2, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
                         uiManager.leaderboardBackButton = lbBack2;
                     }
@@ -555,27 +555,27 @@ public static class DeliveryGameSetup
                             if (authPanel.transform.Find("GoogleSignInButton") == null)
                             {
                                 var googleBtn = MakeButton(authPanel, "GoogleSignInButton", "Sign in with Google",
-                                    new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.52f), Vector2.zero, Vector2.zero);
+                                    new Vector2(0.20f, 0.53f), new Vector2(0.80f, 0.61f), Vector2.zero, Vector2.zero);
                                 var gImg = googleBtn.GetComponent<Image>();
                                 if (gImg != null) gImg.color = new Color(0.85f, 0.30f, 0.25f);
                             }
                             if (authPanel.transform.Find("OrDivider") == null)
                             {
                                 var orTxt = MakeTMP(authPanel, "OrDivider", "— or —", 22, TextAlignmentOptions.Center,
-                                    new Vector2(0.30f, 0.35f), new Vector2(0.70f, 0.41f), Vector2.zero, Vector2.zero);
+                                    new Vector2(0.30f, 0.465f), new Vector2(0.70f, 0.505f), Vector2.zero, Vector2.zero);
                                 orTxt.color = new Color(0.5f, 0.55f, 0.7f, 0.7f);
                             }
                             if (authPanel.transform.Find("GuestSignInButton") == null)
                             {
                                 var guestBtn = MakeButton(authPanel, "GuestSignInButton", "Play as Guest",
-                                    new Vector2(0.22f, 0.24f), new Vector2(0.78f, 0.34f), Vector2.zero, Vector2.zero);
+                                    new Vector2(0.20f, 0.22f), new Vector2(0.80f, 0.30f), Vector2.zero, Vector2.zero);
                                 var gImg = guestBtn.GetComponent<Image>();
                                 if (gImg != null) gImg.color = new Color(0.22f, 0.25f, 0.35f);
                             }
                             if (authPanel.transform.Find("AuthStatusText") == null)
                             {
                                 var authTxt = MakeTMP(authPanel, "AuthStatusText", "", 18, TextAlignmentOptions.Center,
-                                    new Vector2(0.15f, 0.14f), new Vector2(0.85f, 0.22f), Vector2.zero, Vector2.zero);
+                                    new Vector2(0.15f, 0.12f), new Vector2(0.85f, 0.20f), Vector2.zero, Vector2.zero);
                                 authTxt.color = new Color(0.7f, 0.75f, 0.9f, 0.8f);
                             }
                         }
@@ -585,13 +585,13 @@ public static class DeliveryGameSetup
                         }
                         // Always reposition auth panel elements for consistent layout
                         RepositionAnchors(authPanel, "GoogleSignInButton",
-                            new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.52f));
+                            new Vector2(0.20f, 0.53f), new Vector2(0.80f, 0.61f));
                         RepositionAnchors(authPanel, "OrDivider",
-                            new Vector2(0.30f, 0.35f), new Vector2(0.70f, 0.41f));
+                            new Vector2(0.30f, 0.465f), new Vector2(0.70f, 0.505f));
                         RepositionAnchors(authPanel, "GuestSignInButton",
-                            new Vector2(0.22f, 0.24f), new Vector2(0.78f, 0.34f));
+                            new Vector2(0.20f, 0.22f), new Vector2(0.80f, 0.30f));
                         RepositionAnchors(authPanel, "AuthStatusText",
-                            new Vector2(0.15f, 0.14f), new Vector2(0.85f, 0.22f));
+                            new Vector2(0.15f, 0.12f), new Vector2(0.85f, 0.20f));
 
                         // ── Name Panel (subtitle + input + confirm + back) ──
                         var namePanelT = loginGO.transform.Find("LoginNamePanel");
@@ -614,7 +614,7 @@ public static class DeliveryGameSetup
                             if (namePanel.transform.Find("LoginBackButton") == null)
                             {
                                 var backBtn = MakeButton(namePanel, "LoginBackButton", "BACK",
-                                    new Vector2(0.22f, 0.17f), new Vector2(0.78f, 0.27f), Vector2.zero, Vector2.zero);
+                                    new Vector2(0.20f, 0.17f), new Vector2(0.80f, 0.27f), Vector2.zero, Vector2.zero);
                                 var bImg = backBtn.GetComponent<Image>();
                                 if (bImg != null) bImg.color = new Color(0.22f, 0.25f, 0.35f);
                             }
@@ -625,13 +625,13 @@ public static class DeliveryGameSetup
                         }
                         // Always reposition name panel elements for consistent layout
                         RepositionAnchors(namePanel, "SubtitleText",
-                            new Vector2(0.15f, 0.55f), new Vector2(0.85f, 0.63f));
+                            new Vector2(0.15f, 0.73f), new Vector2(0.85f, 0.81f));
                         RepositionAnchors(namePanel, "PlayerNameInput",
-                            new Vector2(0.20f, 0.43f), new Vector2(0.80f, 0.53f));
+                            new Vector2(0.20f, 0.63f), new Vector2(0.80f, 0.72f));
                         RepositionAnchors(namePanel, "LoginConfirmButton",
-                            new Vector2(0.22f, 0.30f), new Vector2(0.78f, 0.40f));
+                            new Vector2(0.20f, 0.38f), new Vector2(0.80f, 0.46f));
                         RepositionAnchors(namePanel, "LoginBackButton",
-                            new Vector2(0.22f, 0.17f), new Vector2(0.78f, 0.27f));
+                            new Vector2(0.20f, 0.17f), new Vector2(0.80f, 0.27f));
 
                         // Wire refs
                         uiManager.loginAuthPanel = authPanel;
@@ -667,7 +667,7 @@ public static class DeliveryGameSetup
                         if (startScreenT != null)
                         {
                             var csBtn = MakeButton(startScreenT.gameObject, "StartCarSelectButton", "SELECT CAR",
-                                new Vector2(0.35f, 0.10f), new Vector2(0.65f, 0.17f), Vector2.zero, Vector2.zero);
+                                new Vector2(0.20f, 0.10f), new Vector2(0.80f, 0.17f), Vector2.zero, Vector2.zero);
                             ApplyButtonColor(csBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
                             uiManager.startCarSelectButton = csBtn;
                         }
@@ -723,7 +723,7 @@ public static class DeliveryGameSetup
                         uiManager.carSelectContent = csContentGO2.transform;
 
                         var csBackBtn2 = MakeButton(carSelectGO2, "CarBackButton", "BACK",
-                            new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+                            new Vector2(0.20f, 0.02f), new Vector2(0.80f, 0.10f), Vector2.zero, Vector2.zero);
                         ApplyButtonColor(csBackBtn2, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
                         uiManager.carSelectBackButton = csBackBtn2;
                     }
@@ -734,6 +734,17 @@ public static class DeliveryGameSetup
                     {
                         var scrollT = canvasT2.Find("CarSelectScreen/CarScroll/Content");
                         if (scrollT != null) uiManager.carSelectContent = scrollT;
+                    }
+                    // Re-apply CarScroll layout
+                    var csScrollT = canvasT2.Find("CarSelectScreen/CarScroll");
+                    if (csScrollT != null)
+                    {
+                        var csRT = csScrollT.GetComponent<RectTransform>();
+                        csRT.anchorMin = new Vector2(0.03f, 0.15f);
+                        csRT.anchorMax = new Vector2(0.97f, 0.84f);
+                        csRT.offsetMin = csRT.offsetMax = Vector2.zero;
+                        csRT.sizeDelta = Vector2.zero;
+                        csRT.anchoredPosition = Vector2.zero;
                     }
 
                     // Buttons
@@ -746,22 +757,23 @@ public static class DeliveryGameSetup
                     if (uiManager.selectModeFromPauseButton == null) uiManager.selectModeFromPauseButton = RewireComp<Button>("PauseScreen/SelectModeButton");
                     if (uiManager.settingsButton == null)         uiManager.settingsButton         = RewireComp<Button>("PauseScreen/SettingsButton");
                     if (uiManager.startSettingsButton == null)    uiManager.startSettingsButton    = RewireComp<Button>("StartScreen/StartSettingsButton");
+                    if (uiManager.closeSettingsButton == null)    uiManager.closeSettingsButton    = RewireComp<Button>("SettingsScreen/CloseSettingsButton");
                     if (uiManager.closeSettingsButton == null)    uiManager.closeSettingsButton    = RewireComp<Button>("SettingsScreen/SettingsPanel/CloseSettingsButton");
                     if (uiManager.languageButton == null)         uiManager.languageButton         = RewireComp<Button>("SettingsScreen/SettingsPanel/LanguageButton");
                     if (uiManager.endlessRetryButton == null)     uiManager.endlessRetryButton     = RewireComp<Button>("EndlessSummaryScreen/EndlessRetryButton");
                     if (uiManager.endlessSelectModeButton == null) uiManager.endlessSelectModeButton = RewireComp<Button>("EndlessSummaryScreen/EndlessSelectModeButton");
                     if (uiManager.modeBackToStartButton == null)
                     {
-                        uiManager.modeBackToStartButton = RewireComp<Button>("ModeSelectScreen/ModeContent/BackToStartButton");
+                        uiManager.modeBackToStartButton = RewireComp<Button>("ModeSelectScreen/BackToStartButton");
                         if (uiManager.modeBackToStartButton == null)
-                            uiManager.modeBackToStartButton = RewireComp<Button>("ModeSelectScreen/BackToStartButton");
+                            uiManager.modeBackToStartButton = RewireComp<Button>("ModeSelectScreen/ModeContent/BackToStartButton");
                         if (uiManager.modeBackToStartButton == null)
                         {
-                            var contentT = canvasT2.Find("ModeSelectScreen/ModeContent");
-                            if (contentT != null)
+                            var modeSelGO = canvasT2.Find("ModeSelectScreen");
+                            if (modeSelGO != null)
                             {
-                                var backBtn2 = MakeButton(contentT.gameObject, "BackToStartButton", "BACK",
-                                    new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -507));
+                                var backBtn2 = MakeButton(modeSelGO.gameObject, "BackToStartButton", "BACK",
+                                    new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.08f), Vector2.zero, Vector2.zero);
                                 ApplyButtonColor(backBtn2, Color.white, Color.white, Color.white);
                                 uiManager.modeBackToStartButton = backBtn2;
                             }
@@ -785,34 +797,64 @@ public static class DeliveryGameSetup
                     if (uiManager.endlessDeliveriesText == null)  uiManager.endlessDeliveriesText  = RewireComp<TextMeshProUGUI>("EndlessSummaryScreen/EndlessDelivText");
                     if (uiManager.languageButtonText == null)     uiManager.languageButtonText     = RewireComp<TextMeshProUGUI>("SettingsScreen/SettingsPanel/LanguageButton/Text");
 
-                    // Google Link button in Settings
+                    // Google Link button + layout for Settings
                     if (uiManager.settingsScreen != null)
                     {
                         var settingsPanel = uiManager.settingsScreen.transform.Find("SettingsPanel");
                         if (settingsPanel != null)
                         {
-                            // Resize panel and reposition ALL elements
+                            // Re-apply fixed-height panel layout
                             var spRT = settingsPanel.GetComponent<RectTransform>();
                             if (spRT != null)
-                                spRT.sizeDelta = new Vector2(spRT.sizeDelta.x, 820);
+                            {
+                                spRT.anchorMin = new Vector2(0.18f, 0.5f);
+                                spRT.anchorMax = new Vector2(0.82f, 0.5f);
+                                spRT.pivot = new Vector2(0.5f, 0.5f);
+                                spRT.offsetMin = new Vector2(0, -410);
+                                spRT.offsetMax = new Vector2(0, 410);
+                                spRT.anchoredPosition = Vector2.zero;
+                            }
 
-                            // ── Sliders (top half) ──
-                            RepositionByName(settingsPanel, "SettingsTitle",    new Vector2(0, 286));
-                            RepositionByName(settingsPanel, "VolumeLabel",      new Vector2(0, 230));
-                            RepositionByName(settingsPanel, "VolumeSlider",     new Vector2(0, 198));
-                            RepositionByName(settingsPanel, "BGMLabel",         new Vector2(0, 150));
-                            RepositionByName(settingsPanel, "BGMSlider",        new Vector2(0, 118));
-                            RepositionByName(settingsPanel, "SFXLabel",         new Vector2(0, 70));
-                            RepositionByName(settingsPanel, "SFXSlider",        new Vector2(0, 38));
-                            RepositionByName(settingsPanel, "ZoneLabelLabel",   new Vector2(0, -10));
-                            RepositionByName(settingsPanel, "ZoneLabelSlider",  new Vector2(0, -42));
+                            // Full reset: anchors + sizeDelta + position for each element
+                            void ResetSettingsChild(string childName, float xMin, float xMax, float height, float yPos)
+                            {
+                                var t = settingsPanel.Find(childName);
+                                if (t == null) return;
+                                var rt = t.GetComponent<RectTransform>();
+                                rt.anchorMin = new Vector2(xMin, 0.5f);
+                                rt.anchorMax = new Vector2(xMax, 0.5f);
+                                rt.pivot = new Vector2(0.5f, 0.5f);
+                                rt.sizeDelta = new Vector2(0, height);
+                                rt.anchoredPosition = new Vector2(0, yPos);
+                                // Reset only Text/Label child to fill parent (skip slider internals)
+                                foreach (Transform child in t)
+                                {
+                                    if (child.GetComponent<TextMeshProUGUI>() == null && child.name != "Text" && child.name != "Label") continue;
+                                    var crt = child.GetComponent<RectTransform>();
+                                    if (crt != null)
+                                    {
+                                        crt.anchorMin = Vector2.zero;
+                                        crt.anchorMax = Vector2.one;
+                                        crt.offsetMin = new Vector2(8, 4);
+                                        crt.offsetMax = new Vector2(-8, -4);
+                                    }
+                                }
+                            }
 
-                            // ── Buttons (bottom half, below sliders) ──
-                            RepositionByName(settingsPanel, "FullscreenButton",    new Vector2(0, -105));
-                            RepositionByName(settingsPanel, "LanguageButton",      new Vector2(0, -170));
-                            RepositionByName(settingsPanel, "GoogleLinkButton",    new Vector2(0, -235));
-                            RepositionByName(settingsPanel, "GoogleLinkStatus",    new Vector2(0, -275));
-                            RepositionByName(settingsPanel, "CloseSettingsButton", new Vector2(0, -330));
+                            ResetSettingsChild("SettingsTitle",     0.08f, 0.92f, 50,  286);
+                            ResetSettingsChild("VolumeLabel",       0.08f, 0.92f, 30,  230);
+                            ResetSettingsChild("VolumeSlider",      0.15f, 0.85f, 36,  198);
+                            ResetSettingsChild("BGMLabel",          0.08f, 0.92f, 30,  150);
+                            ResetSettingsChild("BGMSlider",         0.15f, 0.85f, 36,  118);
+                            ResetSettingsChild("SFXLabel",          0.08f, 0.92f, 30,   70);
+                            ResetSettingsChild("SFXSlider",         0.15f, 0.85f, 36,   38);
+                            ResetSettingsChild("ZoneLabelLabel",    0.08f, 0.92f, 30,  -10);
+                            ResetSettingsChild("ZoneLabelSlider",   0.15f, 0.85f, 36,  -42);
+                            ResetSettingsChild("FullscreenButton",  0.20f, 0.80f, 46, -105);
+                            ResetSettingsChild("LanguageButton",    0.20f, 0.80f, 46, -170);
+                            ResetSettingsChild("GoogleLinkButton",  0.20f, 0.80f, 46, -235);
+                            ResetSettingsChild("GoogleLinkStatus",  0.10f, 0.90f, 24, -275);
+                            ResetSettingsChild("CloseSettingsButton", 0.20f, 0.80f, 46, -330);
 
                             // Create Google Link button by duplicating LanguageButton
                             var langT = settingsPanel.Find("LanguageButton");
@@ -820,14 +862,18 @@ public static class DeliveryGameSetup
                             {
                                 var glGO = Object.Instantiate(langT.gameObject, settingsPanel);
                                 glGO.name = "GoogleLinkButton";
-                                glGO.GetComponent<RectTransform>().anchoredPosition = new Vector2(0, -180);
+                                var glR = glGO.GetComponent<RectTransform>();
+                                glR.anchorMin = new Vector2(0.20f, 0.08f);
+                                glR.anchorMax = new Vector2(0.80f, 0.08f);
+                                glR.sizeDelta = new Vector2(0, 46);
+                                glR.anchoredPosition = Vector2.zero;
                                 var glTxt = glGO.GetComponentInChildren<TextMeshProUGUI>();
                                 if (glTxt != null) glTxt.text = "Link Google Account";
                             }
                             if (settingsPanel.Find("GoogleLinkStatus") == null)
                             {
                                 var glStatus = MakeTMP(settingsPanel.gameObject, "GoogleLinkStatus", "", 20, TextAlignmentOptions.Center,
-                                    new Vector2(0.10f, 0.5f), new Vector2(0.90f, 0.5f), new Vector2(0, 28), new Vector2(0, -220));
+                                    new Vector2(0.10f, 0.00f), new Vector2(0.90f, 0.04f), Vector2.zero, Vector2.zero);
                                 glStatus.color = new Color(0x5E/255f, 0x35/255f, 0x42/255f, 1f);
                             }
 
@@ -838,6 +884,12 @@ public static class DeliveryGameSetup
                             if (uiManager.googleLinkStatusText != null)
                                 uiManager.googleLinkStatusText.color = new Color(0x5E/255f, 0x35/255f, 0x42/255f, 1f);
                         }
+
+                        // Move CloseSettingsButton back into panel if it's outside
+                        var closeOutside = uiManager.settingsScreen.transform.Find("CloseSettingsButton");
+                        var settingsPanelT2 = uiManager.settingsScreen.transform.Find("SettingsPanel");
+                        if (closeOutside != null && settingsPanelT2 != null && closeOutside.parent != settingsPanelT2)
+                            closeOutside.SetParent(settingsPanelT2, false);
                     }
 
                     // Always re-apply button colors (non-destructive update)
@@ -1048,11 +1100,37 @@ public static class DeliveryGameSetup
                 ApplyESAnchors("EndlessTierText",         new Vector2(0.10f, 0.64f), new Vector2(0.90f, 0.75f));
                 ApplyESAnchors("EndlessScoreText",        new Vector2(0.10f, 0.52f), new Vector2(0.90f, 0.63f));
                 ApplyESAnchors("EndlessDelivText",        new Vector2(0.10f, 0.42f), new Vector2(0.90f, 0.52f));
-                ApplyESAnchors("EndlessRetryButton",      new Vector2(0.08f, 0.08f), new Vector2(0.48f, 0.18f));
-                ApplyESAnchors("EndlessSelectModeButton", new Vector2(0.52f, 0.08f), new Vector2(0.92f, 0.18f));
+                ApplyESAnchors("EndlessRetryButton",      new Vector2(0.05f, 0.08f), new Vector2(0.48f, 0.16f));
+                ApplyESAnchors("EndlessSelectModeButton", new Vector2(0.52f, 0.08f), new Vector2(0.95f, 0.16f));
 
                 if (uiManager.endlessSummaryScreen == null)
                     uiManager.endlessSummaryScreen = endlessSumT.gameObject;
+            }
+        }
+
+        // Always re-apply PauseScreen proportional anchors
+        if (uiManager != null)
+        {
+            var canvasPS = FindRoot("Canvas");
+            var pauseT = canvasPS != null ? canvasPS.transform.Find("PauseScreen") : null;
+            if (pauseT != null)
+            {
+                void ApplyPauseAnchors(string childName, Vector2 aMin, Vector2 aMax)
+                {
+                    var t = pauseT.Find(childName);
+                    if (t == null) return;
+                    var rt = t.GetComponent<RectTransform>();
+                    rt.anchorMin = aMin; rt.anchorMax = aMax;
+                    rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
+                    rt.sizeDelta = Vector2.zero;
+                    rt.anchoredPosition = Vector2.zero;
+                }
+                ApplyPauseAnchors("PauseTitle",      new Vector2(0.15f, 0.68f), new Vector2(0.85f, 0.78f));
+                ApplyPauseAnchors("PauseHint",       new Vector2(0.15f, 0.60f), new Vector2(0.85f, 0.67f));
+                ApplyPauseAnchors("ResumeButton",    new Vector2(0.20f, 0.52f), new Vector2(0.80f, 0.58f));
+                ApplyPauseAnchors("RestartButton",   new Vector2(0.20f, 0.43f), new Vector2(0.80f, 0.49f));
+                ApplyPauseAnchors("SettingsButton",  new Vector2(0.20f, 0.34f), new Vector2(0.80f, 0.40f));
+                ApplyPauseAnchors("SelectModeButton", new Vector2(0.20f, 0.25f), new Vector2(0.80f, 0.31f));
             }
         }
 
@@ -1064,6 +1142,13 @@ public static class DeliveryGameSetup
             var modeContentT = modeSelT != null ? modeSelT.Find("ModeContent") : null;
             if (modeSelT != null && modeContentT != null)
             {
+                // Re-apply ModeContent proportional anchors
+                var mcRT = modeContentT.GetComponent<RectTransform>();
+                mcRT.anchorMin = new Vector2(0f, 0.10f);
+                mcRT.anchorMax = new Vector2(1f, 0.95f);
+                mcRT.sizeDelta = Vector2.zero;
+                mcRT.anchoredPosition = Vector2.zero;
+
                 // Helper to update RectTransform anchors for a child inside ModeContent
                 void ApplyAnchors(string childName, Vector2 aMin, Vector2 aMax)
                 {
@@ -1072,57 +1157,44 @@ public static class DeliveryGameSetup
                     var rt = t.GetComponent<RectTransform>();
                     rt.anchorMin = aMin; rt.anchorMax = aMax;
                     rt.offsetMin = Vector2.zero; rt.offsetMax = Vector2.zero;
-                }
-
-                void ApplyBtnLayout(string childName, float anchorY)
-                {
-                    var t = modeContentT.Find(childName);
-                    if (t == null) return;
-                    var rt = t.GetComponent<RectTransform>();
-                    rt.anchorMin = new Vector2(0.5f, anchorY);
-                    rt.anchorMax = new Vector2(0.5f, anchorY);
-                    rt.sizeDelta = new Vector2(340, 62);
+                    rt.sizeDelta = Vector2.zero;
                     rt.anchoredPosition = Vector2.zero;
                 }
 
-                void ApplyDescLayout(string childName, float anchorY)
-                {
-                    var t = modeContentT.Find(childName);
-                    if (t == null) return;
-                    var rt = t.GetComponent<RectTransform>();
-                    rt.anchorMin = new Vector2(0.10f, anchorY);
-                    rt.anchorMax = new Vector2(0.90f, anchorY);
-                    rt.sizeDelta = new Vector2(0, 18);
-                    rt.anchoredPosition = new Vector2(0, -42);
-                    var tmp = t.GetComponent<TextMeshProUGUI>();
-                    if (tmp != null) tmp.fontSize = 18;
-                }
-
                 // Title
-                ApplyAnchors("ModeTitle", new Vector2(0.08f, 0.90f), new Vector2(0.92f, 0.98f));
+                ApplyAnchors("ModeTitle", new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.98f));
 
                 // Section headers
-                ApplyAnchors("StandardHeader", new Vector2(0.30f, 0.835f), new Vector2(0.70f, 0.865f));
-                ApplyAnchors("ExtremeHeader", new Vector2(0.30f, 0.535f), new Vector2(0.70f, 0.565f));
+                ApplyAnchors("StandardHeader", new Vector2(0.25f, 0.835f), new Vector2(0.75f, 0.865f));
+                ApplyAnchors("ExtremeHeader", new Vector2(0.25f, 0.52f), new Vector2(0.75f, 0.555f));
 
                 // Separators
-                ApplyAnchors("SepTop", new Vector2(0.20f, 0.860f), new Vector2(0.80f, 0.862f));
-                ApplyAnchors("SepMid", new Vector2(0.20f, 0.565f), new Vector2(0.80f, 0.567f));
-                ApplyAnchors("SepBot", new Vector2(0.20f, 0.265f), new Vector2(0.80f, 0.267f));
+                ApplyAnchors("SepTop", new Vector2(0.15f, 0.860f), new Vector2(0.85f, 0.862f));
+                ApplyAnchors("SepMid", new Vector2(0.15f, 0.555f), new Vector2(0.85f, 0.557f));
+                ApplyAnchors("SepBot", new Vector2(0.15f, 0.265f), new Vector2(0.85f, 0.267f));
 
-                // Buttons
-                ApplyBtnLayout("HeartModeButton", 0.77f);
-                ApplyBtnLayout("RushModeButton", 0.65f);
-                ApplyBtnLayout("HeartExtremeModeButton", 0.47f);
-                ApplyBtnLayout("RushExtremeModeButton", 0.35f);
-                ApplyBtnLayout("EndlessModeButton", 0.19f);
+                // Buttons (proportional anchors, no fixed sizeDelta)
+                ApplyAnchors("HeartModeButton",        new Vector2(0.30f, 0.73f),  new Vector2(0.70f, 0.80f));
+                ApplyAnchors("RushModeButton",         new Vector2(0.30f, 0.615f), new Vector2(0.70f, 0.685f));
+                ApplyAnchors("HeartExtremeModeButton", new Vector2(0.30f, 0.44f),  new Vector2(0.70f, 0.51f));
+                ApplyAnchors("RushExtremeModeButton",  new Vector2(0.30f, 0.325f), new Vector2(0.70f, 0.395f));
+                ApplyAnchors("EndlessModeButton",      new Vector2(0.30f, 0.17f),  new Vector2(0.70f, 0.24f));
 
                 // Descriptions
-                ApplyDescLayout("HeartDesc", 0.77f);
-                ApplyDescLayout("RushDesc", 0.65f);
-                ApplyDescLayout("HeartExtremeDesc", 0.47f);
-                ApplyDescLayout("RushExtremeDesc", 0.35f);
-                ApplyDescLayout("EndlessDesc", 0.19f);
+                ApplyAnchors("HeartDesc",        new Vector2(0.08f, 0.695f), new Vector2(0.92f, 0.73f));
+                ApplyAnchors("RushDesc",         new Vector2(0.08f, 0.58f),  new Vector2(0.92f, 0.615f));
+                ApplyAnchors("HeartExtremeDesc", new Vector2(0.08f, 0.405f), new Vector2(0.92f, 0.44f));
+                ApplyAnchors("RushExtremeDesc",  new Vector2(0.08f, 0.29f),  new Vector2(0.92f, 0.325f));
+                ApplyAnchors("EndlessDesc",      new Vector2(0.08f, 0.135f), new Vector2(0.92f, 0.17f));
+
+                // Move BackToStartButton from ModeContent to ModeSelectScreen if still inside
+                var backInContent = modeContentT.Find("BackToStartButton");
+                if (backInContent != null)
+                    backInContent.SetParent(modeSelT, false);
+
+                // Re-apply BackToStartButton proportional anchors (now child of ModeSelectScreen)
+                RepositionAnchors(modeSelT.gameObject, "BackToStartButton",
+                    new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.08f));
             }
             else if (canvasGO3 != null && (modeSelT == null || modeContentT == null))
             {
@@ -1370,7 +1442,7 @@ public static class DeliveryGameSetup
         Debug.Log("[Delivery Dash] Scene setup complete! Press Play to test.");
     }
 
-    // Full Rebuild removed — use Setup Scene only (non-destructive).
+    // Setup Scene is the only entry point (non-destructive, always re-applies all values).
 
     // ── UI builder ───────────────────────────────────────────────────────────
     static void BuildUI(out UIManager uiManager, out VirtualJoystick joystick)
@@ -1527,15 +1599,15 @@ public static class DeliveryGameSetup
         reqTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         var startBtn = MakeButton(startGO, "StartButton", "START GAME",
-            new Vector2(0.30f, 0.28f), new Vector2(0.70f, 0.36f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.28f), new Vector2(0.80f, 0.36f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(startBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
         var startCarSelectBtn = MakeButton(startGO, "StartCarSelectButton", "SELECT CAR",
-            new Vector2(0.35f, 0.10f), new Vector2(0.65f, 0.17f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.10f), new Vector2(0.80f, 0.17f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(startCarSelectBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         var startSettingsBtn = MakeButton(startGO, "StartSettingsButton", "\u2699 Settings",
-            new Vector2(0.35f, 0.18f), new Vector2(0.65f, 0.25f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.18f), new Vector2(0.80f, 0.25f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(startSettingsBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // Leaderboard button — duplicate settings button, change text + position
@@ -1554,15 +1626,15 @@ public static class DeliveryGameSetup
         loginTitleTxt.color = new Color(0f, 0.85f, 1f);
 
         var loginSubtitleTxt = MakeTMP(loginGO, "LoginSubtitle", "Enter your nickname", 28, TextAlignmentOptions.Center,
-            new Vector2(0.15f, 0.55f), new Vector2(0.85f, 0.63f), Vector2.zero, Vector2.zero);
+            new Vector2(0.15f, 0.73f), new Vector2(0.85f, 0.81f), Vector2.zero, Vector2.zero);
         loginSubtitleTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         // PlayerNameInput
         var inputGO = new GameObject("PlayerNameInput", typeof(RectTransform));
         inputGO.transform.SetParent(loginGO.transform, false);
         var inputRT = (RectTransform)inputGO.transform;
-        inputRT.anchorMin = new Vector2(0.20f, 0.43f);
-        inputRT.anchorMax = new Vector2(0.80f, 0.53f);
+        inputRT.anchorMin = new Vector2(0.20f, 0.63f);
+        inputRT.anchorMax = new Vector2(0.80f, 0.72f);
         inputRT.offsetMin = inputRT.offsetMax = Vector2.zero;
         var inputImg = inputGO.AddComponent<UnityEngine.UI.Image>();
         inputImg.color = new Color(0.15f, 0.17f, 0.25f, 1f);
@@ -1607,24 +1679,24 @@ public static class DeliveryGameSetup
         tmpInput.pointSize = 26;
 
         var loginConfirmBtn = MakeButton(loginGO, "LoginConfirmButton", "CONFIRM",
-            new Vector2(0.22f, 0.30f), new Vector2(0.78f, 0.40f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.38f), new Vector2(0.80f, 0.46f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(loginConfirmBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
         // "or" divider text
         var orTxt = MakeTMP(loginGO, "OrDivider", "— or —", 22, TextAlignmentOptions.Center,
-            new Vector2(0.30f, 0.35f), new Vector2(0.70f, 0.41f), Vector2.zero, Vector2.zero);
+            new Vector2(0.30f, 0.465f), new Vector2(0.70f, 0.505f), Vector2.zero, Vector2.zero);
         orTxt.color = new Color(0.5f, 0.55f, 0.7f, 0.7f);
 
         var googleBtn = MakeButton(loginGO, "GoogleSignInButton", "Sign in with Google",
-            new Vector2(0.22f, 0.42f), new Vector2(0.78f, 0.52f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.53f), new Vector2(0.80f, 0.61f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(googleBtn, new Color(0.85f, 0.30f, 0.25f), new Color(0.95f, 0.40f, 0.35f), new Color(0.70f, 0.22f, 0.18f));
 
         var guestBtn = MakeButton(loginGO, "GuestSignInButton", "Play as Guest",
-            new Vector2(0.22f, 0.24f), new Vector2(0.78f, 0.34f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.22f), new Vector2(0.80f, 0.30f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(guestBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         var authStatusTxt = MakeTMP(loginGO, "AuthStatusText", "", 18, TextAlignmentOptions.Center,
-            new Vector2(0.15f, 0.14f), new Vector2(0.85f, 0.22f), Vector2.zero, Vector2.zero);
+            new Vector2(0.15f, 0.12f), new Vector2(0.85f, 0.20f), Vector2.zero, Vector2.zero);
         authStatusTxt.color = new Color(0.7f, 0.75f, 0.9f, 0.8f);
 
         // ── Level Fail Screen ─────────────────────────────────────────────────
@@ -1644,7 +1716,7 @@ public static class DeliveryGameSetup
         neededTxt.color = new Color(0.85f, 0.60f, 0.30f);
 
         var retryBtn = MakeButton(gameOverGO, "RetryButton", "TRY AGAIN",
-            new Vector2(0.25f, 0.10f), new Vector2(0.75f, 0.20f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.10f), new Vector2(0.80f, 0.18f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(retryBtn, new Color(0.85f, 0.22f, 0.15f), new Color(1f, 0.35f, 0.25f), new Color(0.65f, 0.12f, 0.08f));
         // Leaderboard button — duplicated from retry at runtime via else-branch
 
@@ -1670,7 +1742,7 @@ public static class DeliveryGameSetup
         lcCountdownTxt.gameObject.SetActive(false);
 
         var nextLvlBtn = MakeButton(levelCompleteGO, "NextLevelButton", "NEXT LEVEL",
-            new Vector2(0.25f, 0.10f), new Vector2(0.75f, 0.20f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.10f), new Vector2(0.80f, 0.18f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(nextLvlBtn, new Color(0.12f, 0.65f, 0.32f), new Color(0.18f, 0.80f, 0.42f), new Color(0.08f, 0.48f, 0.22f));
 
         // ── Victory Screen ────────────────────────────────────────────────────
@@ -1690,7 +1762,7 @@ public static class DeliveryGameSetup
         vicScoreTxt.color = new Color(1f, 0.82f, 0.15f);
 
         var playAgainBtn = MakeButton(victoryGO, "PlayAgainButton", "PLAY AGAIN",
-            new Vector2(0.25f, 0.10f), new Vector2(0.75f, 0.20f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.10f), new Vector2(0.80f, 0.18f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(playAgainBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
         // ── Pause Screen ──────────────────────────────────────────────────────
@@ -1698,27 +1770,27 @@ public static class DeliveryGameSetup
         pauseGO.SetActive(false);
 
         var pauseTitleTxt = MakeTMP(pauseGO, "PauseTitle", "PAUSED", 76, TextAlignmentOptions.Center,
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 100), new Vector2(0, 130));
+            new Vector2(0.15f, 0.68f), new Vector2(0.85f, 0.78f), Vector2.zero, Vector2.zero);
         pauseTitleTxt.color = Color.white;
 
         var pauseHintTxt = MakeTMP(pauseGO, "PauseHint", "ESC to resume", 24, TextAlignmentOptions.Center,
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 40), new Vector2(0, 60));
+            new Vector2(0.15f, 0.60f), new Vector2(0.85f, 0.67f), Vector2.zero, Vector2.zero);
         pauseHintTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         var resumeBtn  = MakeButton(pauseGO, "ResumeButton",  "RESUME",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(220, 64), new Vector2(0, -20));
+            new Vector2(0.20f, 0.52f), new Vector2(0.80f, 0.58f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(resumeBtn, new Color(0.12f, 0.65f, 0.32f), new Color(0.18f, 0.80f, 0.42f), new Color(0.08f, 0.48f, 0.22f));
 
         var restartBtn = MakeButton(pauseGO, "RestartButton", "RETRY LEVEL",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(220, 64), new Vector2(0, -95));
+            new Vector2(0.20f, 0.43f), new Vector2(0.80f, 0.49f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(restartBtn, new Color(0.85f, 0.22f, 0.15f), new Color(1f, 0.35f, 0.25f), new Color(0.65f, 0.12f, 0.08f));
 
         var settingsBtn = MakeButton(pauseGO, "SettingsButton", "Settings",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(220, 64), new Vector2(0, -170));
+            new Vector2(0.20f, 0.34f), new Vector2(0.80f, 0.40f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(settingsBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         var selectModeBtn = MakeButton(pauseGO, "SelectModeButton", "SELECT MODE",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(220, 64), new Vector2(0, -245));
+            new Vector2(0.20f, 0.25f), new Vector2(0.80f, 0.31f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(selectModeBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
         // ── Settings Screen ───────────────────────────────────────────────────
@@ -1733,31 +1805,28 @@ public static class DeliveryGameSetup
         var settingsPanelImg = settingsPanelGO.AddComponent<Image>();
         settingsPanelImg.color = new Color(0.12f, 0.14f, 0.22f, 0.95f);
         var settingsPanelRT = settingsPanelGO.GetComponent<RectTransform>();
-        settingsPanelRT.anchorMin = new Vector2(0.10f, 0.5f);
-        settingsPanelRT.anchorMax = new Vector2(0.90f, 0.5f);
+        settingsPanelRT.anchorMin = new Vector2(0.18f, 0.5f);
+        settingsPanelRT.anchorMax = new Vector2(0.82f, 0.5f);
         settingsPanelRT.pivot     = new Vector2(0.5f, 0.5f);
-        settingsPanelRT.sizeDelta = new Vector2(0, 350);
+        settingsPanelRT.sizeDelta = new Vector2(0, 820);
         settingsPanelRT.anchoredPosition = Vector2.zero;
 
-        // Panel height to fit all controls
-        settingsPanelRT.sizeDelta = new Vector2(0, 1000);
-
         var settingsTitleTxt = MakeTMP(settingsPanelGO, "SettingsTitle", "Settings", 52, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 60), new Vector2(0, 360));
+            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 50), new Vector2(0, 286));
         settingsTitleTxt.color = Color.white;
 
         var volumeLabelTxt = MakeTMP(settingsPanelGO, "VolumeLabel", "Volume", 30, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 44), new Vector2(0, 300));
+            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 30), new Vector2(0, 230));
         volumeLabelTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         var sliderGO = new GameObject("VolumeSlider", typeof(RectTransform));
         sliderGO.transform.SetParent(settingsPanelGO.transform, false);
         var sliderRT = sliderGO.GetComponent<RectTransform>();
-        sliderRT.anchorMin       = new Vector2(0.1f, 0.5f);
-        sliderRT.anchorMax       = new Vector2(0.9f, 0.5f);
+        sliderRT.anchorMin       = new Vector2(0.15f, 0.5f);
+        sliderRT.anchorMax       = new Vector2(0.85f, 0.5f);
         sliderRT.pivot           = new Vector2(0.5f, 0.5f);
-        sliderRT.sizeDelta       = new Vector2(0, 40);
-        sliderRT.anchoredPosition = new Vector2(0, 260);
+        sliderRT.sizeDelta       = new Vector2(0, 36);
+        sliderRT.anchoredPosition = new Vector2(0, 198);
 
         var sliderBgGO = new GameObject("Background", typeof(RectTransform));
         sliderBgGO.transform.SetParent(sliderGO.transform, false);
@@ -1812,31 +1881,31 @@ public static class DeliveryGameSetup
 
         // BGM label + slider
         var bgmLabelTxt = MakeTMP(settingsPanelGO, "BGMLabel", "Music", 28, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 30), new Vector2(0, 200));
+            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 30), new Vector2(0, 150));
         bgmLabelTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
-        var bgmSliderGO = BuildSettingsSliderInSetup(settingsPanelGO, "BGMSlider", 170);
+        var bgmSliderGO = BuildSettingsSliderInSetup(settingsPanelGO, "BGMSlider", 118);
 
         // SFX label + slider
         var sfxLabelTxt = MakeTMP(settingsPanelGO, "SFXLabel", "Effects", 28, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 30), new Vector2(0, 110));
+            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 30), new Vector2(0, 70));
         sfxLabelTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
-        var sfxSliderGO = BuildSettingsSliderInSetup(settingsPanelGO, "SFXSlider", 80);
+        var sfxSliderGO = BuildSettingsSliderInSetup(settingsPanelGO, "SFXSlider", 38);
 
         // Zone Labels label + slider
         var zoneLabelLabelTxt = MakeTMP(settingsPanelGO, "ZoneLabelLabel", "Zone Labels", 28, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 30), new Vector2(0, 20));
+            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 30), new Vector2(0, -10));
         zoneLabelLabelTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
-        var zoneLabelSliderGO = BuildSettingsSliderInSetup(settingsPanelGO, "ZoneLabelSlider", -10);
+        var zoneLabelSliderGO = BuildSettingsSliderInSetup(settingsPanelGO, "ZoneLabelSlider", -42);
 
         // Fullscreen toggle button
         var fsGO = new GameObject("FullscreenButton", typeof(RectTransform));
         fsGO.transform.SetParent(settingsPanelGO.transform, false);
         var fsRT = fsGO.GetComponent<RectTransform>();
-        fsRT.anchorMin = new Vector2(0.15f, 0.5f);
-        fsRT.anchorMax = new Vector2(0.85f, 0.5f);
+        fsRT.anchorMin = new Vector2(0.20f, 0.5f);
+        fsRT.anchorMax = new Vector2(0.80f, 0.5f);
         fsRT.pivot = new Vector2(0.5f, 0.5f);
-        fsRT.sizeDelta = new Vector2(0, 40);
-        fsRT.anchoredPosition = new Vector2(0, -70);
+        fsRT.sizeDelta = new Vector2(0, 46);
+        fsRT.anchoredPosition = new Vector2(0, -105);
         var fsImg = fsGO.AddComponent<Image>();
         fsImg.color = new Color(0.22f, 0.25f, 0.35f, 0.9f);
         var fsBtn = fsGO.AddComponent<Button>();
@@ -1858,7 +1927,7 @@ public static class DeliveryGameSetup
 
         // Language button
         var langBtnGO = MakeButton(settingsPanelGO, "LanguageButton", "Language: EN",
-            new Vector2(0.2f, 0.5f), new Vector2(0.8f, 0.5f), new Vector2(0, 50), new Vector2(0, -150));
+            new Vector2(0.20f, 0.5f), new Vector2(0.80f, 0.5f), new Vector2(0, 46), new Vector2(0, -170));
         ApplyButtonColor(langBtnGO, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var langBtnTxtTMP = langBtnGO.GetComponentInChildren<TextMeshProUGUI>();
 
@@ -1866,16 +1935,19 @@ public static class DeliveryGameSetup
         var googleLinkBtnGO = Object.Instantiate(langBtnGO.gameObject, settingsPanelGO.transform).GetComponent<Button>();
         googleLinkBtnGO.gameObject.name = "GoogleLinkButton";
         var glRT = googleLinkBtnGO.GetComponent<RectTransform>();
-        glRT.anchoredPosition = new Vector2(0, -240);
+        glRT.anchorMin = new Vector2(0.20f, 0.5f);
+        glRT.anchorMax = new Vector2(0.80f, 0.5f);
+        glRT.sizeDelta = new Vector2(0, 46);
+        glRT.anchoredPosition = new Vector2(0, -235);
         var glTxt = googleLinkBtnGO.GetComponentInChildren<TextMeshProUGUI>();
         if (glTxt != null) glTxt.text = "Link Google Account";
         var googleLinkStatusTxt = MakeTMP(settingsPanelGO, "GoogleLinkStatus", "", 20, TextAlignmentOptions.Center,
-            new Vector2(0.10f, 0.5f), new Vector2(0.90f, 0.5f), new Vector2(0, 28), new Vector2(0, -290));
+            new Vector2(0.10f, 0.5f), new Vector2(0.90f, 0.5f), new Vector2(0, 24), new Vector2(0, -275));
         googleLinkStatusTxt.color = Color.white;
 
-        // Close button
+        // Close button — inside panel at bottom
         var closeSettingsBtnGO = MakeButton(settingsPanelGO, "CloseSettingsButton", "Close",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(180, 56), new Vector2(0, -350));
+            new Vector2(0.20f, 0.5f), new Vector2(0.80f, 0.5f), new Vector2(0, 46), new Vector2(0, -330));
         ApplyButtonColor(closeSettingsBtnGO, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         settingsGO.SetActive(false);
@@ -1884,24 +1956,24 @@ public static class DeliveryGameSetup
         var modeSelectGO = MakeFullScreenPanel(canvasGO, "ModeSelectScreen", new Color(0.05f, 0.06f, 0.13f, 0.93f));
         modeSelectGO.SetActive(false);
 
-        // ── Content container centered vertically ──
+        // ── Content container — proportional anchors for responsive layout ──
         var contentGO = new GameObject("ModeContent", typeof(RectTransform));
         contentGO.transform.SetParent(modeSelectGO.transform, false);
         var contentRt = contentGO.GetComponent<RectTransform>();
-        contentRt.anchorMin = new Vector2(0f, 0.5f);
-        contentRt.anchorMax = new Vector2(1f, 0.5f);
+        contentRt.anchorMin = new Vector2(0f, 0.10f);
+        contentRt.anchorMax = new Vector2(1f, 0.95f);
         contentRt.pivot = new Vector2(0.5f, 0.5f);
-        contentRt.sizeDelta = new Vector2(0, 1050);
+        contentRt.sizeDelta = Vector2.zero;
         contentRt.anchoredPosition = Vector2.zero;
 
         // Title
         var modeSelectTitleTxt = MakeTMP(contentGO, "ModeTitle", "SELECT MODE", 64, TextAlignmentOptions.Center,
-            new Vector2(0.05f, 0.5f), new Vector2(0.95f, 0.5f), new Vector2(0, 48), new Vector2(0, 470));
+            new Vector2(0.05f, 0.90f), new Vector2(0.95f, 0.98f), Vector2.zero, Vector2.zero);
         modeSelectTitleTxt.color = Color.white;
 
         // ── Standard section ──
         var standardHeaderTxt = MakeTMP(contentGO, "StandardHeader", "STANDARD", 26, TextAlignmentOptions.Center,
-            new Vector2(0.25f, 0.5f), new Vector2(0.75f, 0.5f), new Vector2(0, 28), new Vector2(0, 370));
+            new Vector2(0.25f, 0.835f), new Vector2(0.75f, 0.865f), Vector2.zero, Vector2.zero);
         standardHeaderTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
         standardHeaderTxt.fontStyle = FontStyles.Bold;
 
@@ -1910,24 +1982,24 @@ public static class DeliveryGameSetup
         var sepTopImg = sepTop.AddComponent<Image>();
         sepTopImg.color = new Color(0.45f, 0.55f, 0.75f, 0.6f);
         var sepTopRt = sepTop.GetComponent<RectTransform>();
-        sepTopRt.anchorMin = new Vector2(0.15f, 0.5f); sepTopRt.anchorMax = new Vector2(0.85f, 0.5f);
+        sepTopRt.anchorMin = new Vector2(0.15f, 0.860f); sepTopRt.anchorMax = new Vector2(0.85f, 0.862f);
         sepTopRt.pivot = new Vector2(0.5f, 0.5f);
-        sepTopRt.sizeDelta = new Vector2(0, 2); sepTopRt.anchoredPosition = new Vector2(0, 398);
+        sepTopRt.sizeDelta = Vector2.zero; sepTopRt.anchoredPosition = Vector2.zero;
 
         // Heart Mode
         var heartBtn = MakeButton(contentGO, "HeartModeButton", "\u2665  HEART MODE",
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, 300));
+            new Vector2(0.30f, 0.73f), new Vector2(0.70f, 0.80f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(heartBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var heartDescTxt = MakeTMP(contentGO, "HeartDesc", "More hearts as you progress!", 18, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, 256));
+            new Vector2(0.08f, 0.695f), new Vector2(0.92f, 0.73f), Vector2.zero, Vector2.zero);
         heartDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         // Rush Mode
         var rushBtn = MakeButton(contentGO, "RushModeButton", "\u26a1  RUSH MODE",
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, 195));
+            new Vector2(0.30f, 0.615f), new Vector2(0.70f, 0.685f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(rushBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var rushDescTxt = MakeTMP(contentGO, "RushDesc", "Hit target to advance! Crash = lose time", 18, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, 151));
+            new Vector2(0.08f, 0.58f), new Vector2(0.92f, 0.615f), Vector2.zero, Vector2.zero);
         rushDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         // ── Extreme section ──
@@ -1936,29 +2008,29 @@ public static class DeliveryGameSetup
         var sepMidImg = sepMid.AddComponent<Image>();
         sepMidImg.color = new Color(0.45f, 0.55f, 0.75f, 0.6f);
         var sepMidRt = sepMid.GetComponent<RectTransform>();
-        sepMidRt.anchorMin = new Vector2(0.15f, 0.5f); sepMidRt.anchorMax = new Vector2(0.85f, 0.5f);
+        sepMidRt.anchorMin = new Vector2(0.15f, 0.555f); sepMidRt.anchorMax = new Vector2(0.85f, 0.557f);
         sepMidRt.pivot = new Vector2(0.5f, 0.5f);
-        sepMidRt.sizeDelta = new Vector2(0, 2); sepMidRt.anchoredPosition = new Vector2(0, 100);
+        sepMidRt.sizeDelta = Vector2.zero; sepMidRt.anchoredPosition = Vector2.zero;
 
         var extremeHeaderTxt = MakeTMP(contentGO, "ExtremeHeader", "EXTREME", 26, TextAlignmentOptions.Center,
-            new Vector2(0.25f, 0.5f), new Vector2(0.75f, 0.5f), new Vector2(0, 28), new Vector2(0, 68));
+            new Vector2(0.25f, 0.52f), new Vector2(0.75f, 0.555f), Vector2.zero, Vector2.zero);
         extremeHeaderTxt.color = new Color(0.85f, 0.45f, 0.15f);
         extremeHeaderTxt.fontStyle = FontStyles.Bold;
 
         // Heart Extreme
         var heartExtremeBtn = MakeButton(contentGO, "HeartExtremeModeButton", "\u2665  HEART EXTREME",
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, -5));
+            new Vector2(0.30f, 0.44f), new Vector2(0.70f, 0.51f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(heartExtremeBtn, new Color(0.75f, 0.35f, 0.12f), new Color(0.90f, 0.45f, 0.18f), new Color(0.55f, 0.25f, 0.08f));
         var heartExtremeDescTxt = MakeTMP(contentGO, "HeartExtremeDesc", "Heart Mode + 50% faster traffic!", 18, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, -49));
+            new Vector2(0.08f, 0.405f), new Vector2(0.92f, 0.44f), Vector2.zero, Vector2.zero);
         heartExtremeDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         // Rush Extreme
         var rushExtremeBtn = MakeButton(contentGO, "RushExtremeModeButton", "\u26a1  RUSH EXTREME",
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, -110));
+            new Vector2(0.30f, 0.325f), new Vector2(0.70f, 0.395f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(rushExtremeBtn, new Color(0.75f, 0.35f, 0.12f), new Color(0.90f, 0.45f, 0.18f), new Color(0.55f, 0.25f, 0.08f));
         var rushExtremeDescTxt = MakeTMP(contentGO, "RushExtremeDesc", "Rush Mode + 50% faster traffic!", 18, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, -154));
+            new Vector2(0.08f, 0.29f), new Vector2(0.92f, 0.325f), Vector2.zero, Vector2.zero);
         rushExtremeDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         // ── Endless section ──
@@ -1967,20 +2039,20 @@ public static class DeliveryGameSetup
         var sepBotImg = sepBot.AddComponent<Image>();
         sepBotImg.color = new Color(0.45f, 0.55f, 0.75f, 0.6f);
         var sepBotRt = sepBot.GetComponent<RectTransform>();
-        sepBotRt.anchorMin = new Vector2(0.15f, 0.5f); sepBotRt.anchorMax = new Vector2(0.85f, 0.5f);
+        sepBotRt.anchorMin = new Vector2(0.15f, 0.265f); sepBotRt.anchorMax = new Vector2(0.85f, 0.267f);
         sepBotRt.pivot = new Vector2(0.5f, 0.5f);
-        sepBotRt.sizeDelta = new Vector2(0, 2); sepBotRt.anchoredPosition = new Vector2(0, -205);
+        sepBotRt.sizeDelta = Vector2.zero; sepBotRt.anchoredPosition = Vector2.zero;
 
         var endlessBtn = MakeButton(contentGO, "EndlessModeButton", "\u221e  ENDLESS",
-            new Vector2(0.15f, 0.5f), new Vector2(0.85f, 0.5f), new Vector2(0, 68), new Vector2(0, -265));
+            new Vector2(0.30f, 0.17f), new Vector2(0.70f, 0.24f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(endlessBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
         var endlessDescTxt = MakeTMP(contentGO, "EndlessDesc", "Survive as long as you can!", 18, TextAlignmentOptions.Center,
-            new Vector2(0.08f, 0.5f), new Vector2(0.92f, 0.5f), new Vector2(0, 20), new Vector2(0, -309));
+            new Vector2(0.08f, 0.135f), new Vector2(0.92f, 0.17f), Vector2.zero, Vector2.zero);
         endlessDescTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
-        // Back to Start button (inside ModeContent, same proportional width as mode buttons)
-        var modeBackBtn = MakeButton(contentGO, "BackToStartButton", "BACK",
-            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(340, 62), new Vector2(0, -507));
+        // Back to Start button — direct child of ModeSelectScreen (outside ModeContent) for fixed bottom position
+        var modeBackBtn = MakeButton(modeSelectGO, "BackToStartButton", "BACK",
+            new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.08f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(modeBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // Leaderboard button — duplicate back button, change text + position
@@ -2005,11 +2077,11 @@ public static class DeliveryGameSetup
         endlessDelivTxt.color = new Color(0.75f, 0.85f, 1f, 0.85f);
 
         var endlessRetryBtn = MakeButton(endlessSummaryGO, "EndlessRetryButton", "RETRY ENDLESS",
-            new Vector2(0.08f, 0.08f), new Vector2(0.48f, 0.18f), Vector2.zero, Vector2.zero);
+            new Vector2(0.05f, 0.08f), new Vector2(0.48f, 0.16f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(endlessRetryBtn, new Color(0.85f, 0.22f, 0.15f), new Color(1f, 0.35f, 0.25f), new Color(0.65f, 0.12f, 0.08f));
 
         var endlessSelectBtn = MakeButton(endlessSummaryGO, "EndlessSelectModeButton", "SELECT MODE",
-            new Vector2(0.52f, 0.08f), new Vector2(0.92f, 0.18f), Vector2.zero, Vector2.zero);
+            new Vector2(0.52f, 0.08f), new Vector2(0.95f, 0.16f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(endlessSelectBtn, new Color(0f, 0.75f, 0.85f), new Color(0f, 0.90f, 1f), new Color(0f, 0.55f, 0.65f));
 
         // ── Car Select Screen ────────────────────────────────────────────────
@@ -2060,7 +2132,7 @@ public static class DeliveryGameSetup
         csf.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         var carBackBtn = MakeButton(carSelectGO, "CarBackButton", "BACK",
-            new Vector2(0.30f, 0.02f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.02f), new Vector2(0.80f, 0.10f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(carBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // ── Leaderboard Screen ──────────────────────────────────────────────
@@ -2120,7 +2192,7 @@ public static class DeliveryGameSetup
         lbCsf.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         var lbBackBtn = MakeButton(leaderboardGO, "LeaderboardBackButton", "BACK",
-            new Vector2(0.30f, 0.03f), new Vector2(0.70f, 0.12f), Vector2.zero, Vector2.zero);
+            new Vector2(0.20f, 0.02f), new Vector2(0.80f, 0.10f), Vector2.zero, Vector2.zero);
         ApplyButtonColor(lbBackBtn, new Color(0.22f, 0.25f, 0.35f), new Color(0.32f, 0.38f, 0.52f), new Color(0.14f, 0.16f, 0.24f));
 
         // ── Virtual Joystick — floating, responsive layout ─────────────────────
@@ -2542,10 +2614,10 @@ public static class DeliveryGameSetup
         var go = new GameObject(name, typeof(RectTransform));
         go.transform.SetParent(panel.transform, false);
         var rt = go.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0.1f, 0.5f);
-        rt.anchorMax = new Vector2(0.9f, 0.5f);
+        rt.anchorMin = new Vector2(0.15f, 0.5f);
+        rt.anchorMax = new Vector2(0.85f, 0.5f);
         rt.pivot = new Vector2(0.5f, 0.5f);
-        rt.sizeDelta = new Vector2(0, 40);
+        rt.sizeDelta = new Vector2(0, 36);
         rt.anchoredPosition = new Vector2(0, y);
 
         var bgGO = new GameObject("Background", typeof(RectTransform));

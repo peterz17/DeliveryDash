@@ -26,7 +26,7 @@ Assets/Resources/Localization/
 - `LocalizationManager` fires `OnLanguageChanged` static event — all UI subscribes to it
 - World-space zone labels use `TextMesh` + `ZoneLabelLocalizer` (subscribes to `OnLanguageChanged`)
 - Screen-space UI uses `TextMeshProUGUI` — requires TMP Essential Resources imported
-- `DeliveryGameSetup.cs` is **non-destructive**: always updates existing objects, never destroys unless Full Rebuild
+- `DeliveryGameSetup.cs` is **non-destructive**: always updates existing objects in-place
 
 ## Unity API Rules (Unity 6)
 - Use `rb.linearVelocity` not `rb.velocity` (deprecated)
@@ -55,7 +55,7 @@ Assets/Resources/Localization/
 ## Scene Setup
 Run **Delivery Dash → Setup Scene** in Unity menu. Safe to re-run at any time.
 - Updates existing objects in-place (non-destructive)
-- Use **Full Rebuild Scene** only when structure must be wiped clean
+- Safe to re-run at any time — else-branch must reset all values, not just reposition
 
 ## Gameplay
 State: StartScreen → ModeSelect → Playing → LevelComplete / LevelFail / Victory / EndlessSummary
