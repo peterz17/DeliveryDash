@@ -136,7 +136,9 @@ public class PlayerController : MonoBehaviour
         }
 
         Vector2 joyDir = (joystick != null) ? joystick.Direction : Vector2.zero;
-        moveInput = Vector2.ClampMagnitude(new Vector2(x, y) + joyDir, 1f);
+        Vector2 botDir = (AutoPlayBot.Instance != null && AutoPlayBot.Instance.IsActive)
+            ? AutoPlayBot.Instance.GetDirection() : Vector2.zero;
+        moveInput = Vector2.ClampMagnitude(new Vector2(x, y) + joyDir + botDir, 1f);
 
         if (moveInput.sqrMagnitude > 0.01f)
         {

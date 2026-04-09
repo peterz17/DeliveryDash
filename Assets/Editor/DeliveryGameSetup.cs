@@ -181,11 +181,29 @@ public static class DeliveryGameSetup
         }
         else
         {
-            // Update sprites and scale on existing zones
+            // Update sprites, scale, and destinationName on existing zones
             var existingZones = FindRoot("--- Zones ---");
+            // Fix destinationName on ALL DeliveryZone components first
+            var allDZ = Object.FindObjectsByType<DeliveryZone>(FindObjectsSortMode.None);
+            foreach (var dz in allDZ)
+            {
+                string normalized = dz.destinationName.ToLower().Replace(" ", "_");
+                if (normalized != dz.destinationName)
+                {
+                    dz.destinationName = normalized;
+                    EditorUtility.SetDirty(dz);
+                }
+            }
             for (int i = 0; i < DeliveryNames.Length; i++)
             {
+                // Try both naming conventions
                 var zoneT = existingZones.transform.Find(DeliveryNames[i]);
+                if (zoneT == null)
+                {
+                    // Try display name format
+                    string displayName = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(DeliveryNames[i].Replace("_", " "));
+                    zoneT = existingZones.transform.Find(displayName);
+                }
                 if (zoneT == null) continue;
                 var sr = zoneT.GetComponent<SpriteRenderer>();
                 if (sr != null)
