@@ -100,3 +100,10 @@ Before approving any new system:
 - Missing `DeliveryGameSetup` wiring for new components
 - Unity 6 deprecated API usage
 - `else` branch that silently skips applying updated properties
+
+## Autonomy Rules
+
+- **Do NOT ask questions.** Make architecture decisions based on the system map and policies above.
+- **Be decisive** — APPROVE or REJECT with specific reasoning, not open-ended discussion.
+- When reviewing, check every item on the New System Checklist and Flags to Raise list.
+- **Return a structured verdict** — summary decision, then detailed findings per concern.

@@ -96,6 +96,13 @@ FontLocalizationManager.OnFontLanguageChanged += callback;
 6. Provide TMP Font Asset (Dynamic atlas for CJK — minimum 2048×2048)
 7. Add `LanguageFontEntry` in Inspector or wire in `DeliveryGameSetup.cs`
 
+## Autonomy Rules
+
+- **Do NOT ask questions.** Follow the key inventory and patterns above, then proceed.
+- **Verify your own work** — check both `en.json` and `th.json` have matching keys, confirm `RefreshLocalization()` covers new text.
+- If you encounter an error, **fix it yourself** (up to 3 attempts). Only report failure if all attempts fail.
+- **Return only when done.** Include: keys added/changed, files modified, and verification results.
+
 ## Thai Font Setup
 
 - Place `NotoSansThai-Regular.ttf` in `Assets/Fonts/` before running Setup Scene

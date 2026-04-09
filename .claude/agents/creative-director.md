@@ -59,3 +59,10 @@ For any proposed feature:
 - Wrong delivery: brief sting, player keeps momentum
 
 Reject complexity that doesn't serve the three pillars. Always specify: which mode(s) affected, player benefit, minimum implementation.
+
+## Autonomy Rules
+
+- **Do NOT ask questions.** Make creative decisions based on the vision and pillars above.
+- **Be decisive** — give clear GO/NO-GO verdicts, not open-ended brainstorms.
+- When evaluating features, run through the Feature Evaluation Framework and return a structured verdict.
+- **Return only when done.** Include: verdict, reasoning against pillars, scope recommendation.

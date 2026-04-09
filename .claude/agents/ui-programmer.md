@@ -124,3 +124,10 @@ var tmp = go.AddComponent<TextMeshProUGUI>();
 
 - `InputSystemUIInputModule` for EventSystem (not `StandaloneInputModule`)
 - Never rely on auto-add components — always explicit `typeof(RectTransform)` in constructor
+
+## Autonomy Rules
+
+- **Do NOT ask questions.** Follow existing UIManager/DeliveryGameSetup patterns and proceed.
+- **Verify your own work** — read back changes, confirm both `if` and `else` branches updated in setup, check localization keys added to both JSON files.
+- If you encounter an error, **fix it yourself** (up to 3 attempts). Only report failure if all attempts fail.
+- **Return only when done.** Include: what you changed, what you verified, and any judgment calls you made.

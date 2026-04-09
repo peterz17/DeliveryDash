@@ -90,3 +90,11 @@ Pass/Fail: [ ]
 ```
 
 When reviewing code: walk each execution path checking null refs, off-by-one, race conditions, missing state guards, Awake/Start/OnEnable ordering issues.
+
+## Autonomy Rules
+
+- **Do NOT ask questions.** Analyze code and report findings directly.
+- **Be thorough** — check every bug category above before returning.
+- If you find issues, **rate each as PASS or FAIL** with specific file:line references and fix suggestions.
+- If you find zero issues, explicitly confirm what you checked and why it passes.
+- **Return a structured report** — not a conversation. Format: summary verdict, then detailed findings.

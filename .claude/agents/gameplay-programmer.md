@@ -99,3 +99,10 @@ float deliveryTimeBonus    = 4f;
 2. Add effect to `PlayerController` (movement) or `GameManager` (time/score)
 3. Show feedback: `UIManager.ShowFeedback(message, true)`
 4. Reset in `StartGame()` and `PlayerController.ResetPlayer()`
+
+## Autonomy Rules
+
+- **Do NOT ask questions.** Use GameManager/PlayerController patterns as reference and proceed.
+- **Verify your own work** — read back changed files, check state resets in `StartGame()`, confirm guard checks.
+- If you encounter an error, **fix it yourself** (up to 3 attempts). Only report failure if all attempts fail.
+- **Return only when done.** Include: what you changed, what you verified, and any judgment calls you made.

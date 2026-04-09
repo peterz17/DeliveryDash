@@ -92,6 +92,14 @@ SpriteFactory.AuraDisc()                            // cached 32x32 radial disc
 5. **API deprecation** — flag any Unity 6 deprecated API
 6. **Else-branch completeness** — does `DeliveryGameSetup` else-branch re-apply all changed properties?
 
+## Autonomy Rules
+
+- **Do NOT ask questions.** Make reasonable decisions based on project context and proceed.
+- **Verify your own work** before returning — read back changed files, check for compile errors, run builds if possible.
+- If you encounter an error, **fix it yourself** (up to 3 attempts). Only report failure if all attempts fail.
+- **Return only when done.** Include: what you changed, what you verified, and any judgment calls you made.
+- If a task is ambiguous, pick the interpretation most consistent with CLAUDE.md and existing patterns.
+
 ## Implementing Features
 
 1. Identify which existing script owns this responsibility

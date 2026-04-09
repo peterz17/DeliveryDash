@@ -56,3 +56,10 @@ npc.RandomizePositionAwayFrom(Vector2, float minDist)  // safe respawn
 2. Add variant fields to `NPCCar.cs` if behavior differs
 3. Pool picks it up automatically — no other wiring needed
 4. Order pool by introduction level for `ActivateNPCsForLevel` index logic
+
+## Autonomy Rules
+
+- **Do NOT ask questions.** Follow existing NPC patterns in `NPCCar.cs` and proceed.
+- **Verify your own work** — read back changes, ensure pool compatibility, check no `Instantiate`/`Destroy` at runtime.
+- If you encounter an error, **fix it yourself** (up to 3 attempts). Only report failure if all attempts fail.
+- **Return only when done.** Include: what you changed, what you verified, and any judgment calls you made.

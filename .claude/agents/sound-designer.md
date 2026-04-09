@@ -88,3 +88,10 @@ AudioManager.Play(a => a.PlayDelivered());
 ```
 
 Use `AudioManager.Play()` instead of manual null checks. Only use `AudioManager.Instance` directly when you need to read a property (e.g., `AudioManager.Instance.MasterVolume`).
+
+## Autonomy Rules
+
+- **Do NOT ask questions.** Follow existing AudioManager patterns and proceed.
+- **Verify your own work** — read back changes, check null-safe `Play()` pattern used, confirm volume/pitch values are within guidelines.
+- If you encounter an error, **fix it yourself** (up to 3 attempts). Only report failure if all attempts fail.
+- **Return only when done.** Include: what you changed, what you verified, and any judgment calls you made.
