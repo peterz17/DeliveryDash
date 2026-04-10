@@ -14,6 +14,7 @@ public class DebugColliderVisualizer : MonoBehaviour
 
     bool showColliders;
     Material lineMaterial;
+    float _lastIPress = -1f;
 
     void Awake()
     {
@@ -33,8 +34,16 @@ public class DebugColliderVisualizer : MonoBehaviour
 
     void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.kKey.wasPressedThisFrame)
-            showColliders = !showColliders;
+        if (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame)
+        {
+            if (Time.unscaledTime - _lastIPress < 0.5f)
+            {
+                showColliders = !showColliders;
+                _lastIPress = -1f;
+            }
+            else
+                _lastIPress = Time.unscaledTime;
+        }
     }
 
     void OnEndCameraRendering(ScriptableRenderContext context, Camera cam)

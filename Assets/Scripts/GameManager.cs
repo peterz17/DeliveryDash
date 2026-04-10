@@ -523,9 +523,15 @@ public class GameManager : MonoBehaviour
         float speedInc = endlessTier <= 10 ? 0.3f : 0.5f;
         float speedCap = 9f + Mathf.Max(0, endlessTier - 9) * 0.5f;
 
+        // Bump already-active NPCs and remember the new "current tier" speed
+        // so newly activated NPCs can match it (instead of carrying stale values).
+        float sampleSpeed = -1f;
         foreach (var npc in npcPool)
             if (npc.gameObject.activeSelf)
+            {
                 npc.speed = Mathf.Min(npc.speed + speedInc, speedCap);
+                if (sampleSpeed < 0f) sampleSpeed = npc.speed;
+            }
 
         if (bossPool != null)
             foreach (var npc in bossPool)
@@ -537,6 +543,10 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < nextCount; i++)
             if (!npcPool[i].gameObject.activeSelf)
             {
+                // Set the newly activated NPC to current tier speed, not stale cached value
+                npcPool[i].speed = sampleSpeed > 0f
+                    ? sampleSpeed
+                    : Mathf.Min(npcPool[i].baseSpeed * NPCSpeedMultiplier + endlessTier * speedInc, speedCap);
                 npcPool[i].gameObject.SetActive(true);
                 npcPool[i].RandomizePositionAwayFrom(playerPos2, 5f);
             }
@@ -633,14 +643,15 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < npcPool.Length; i++)
         {
             bool active = i < normalCount;
+            // Always reset speed to base — inactive NPCs must not carry over
+            // accumulated speed from a previous session (endless tier-ups).
+            npcPool[i].speed = npcPool[i].baseSpeed * NPCSpeedMultiplier;
+            if (level >= 10)
+                npcPool[i].speed = Mathf.Min(npcPool[i].baseSpeed * NPCSpeedMultiplier * (1f + (level - 10) * 0.035f), 8f);
+
             npcPool[i].gameObject.SetActive(active);
             if (active)
-            {
-                npcPool[i].speed = npcPool[i].baseSpeed * NPCSpeedMultiplier;
-                if (level >= 10)
-                    npcPool[i].speed = Mathf.Min(npcPool[i].baseSpeed * NPCSpeedMultiplier * (1f + (level - 10) * 0.035f), 8f);
                 npcPool[i].RandomizePositionAwayFrom(playerPos, 5f);
-            }
         }
 
         if (bossPool == null) return;
@@ -653,10 +664,11 @@ public class GameManager : MonoBehaviour
         {
             bool active = i < bossCount;
             bool wasInactive = !bossPool[i].gameObject.activeSelf;
+            // Reset speed regardless of activation so stale endless values don't carry over
+            bossPool[i].speed = bossPool[i].baseSpeed * NPCSpeedMultiplier;
             bossPool[i].gameObject.SetActive(active);
             if (active)
             {
-                bossPool[i].speed = bossPool[i].baseSpeed * NPCSpeedMultiplier;
                 bossPool[i].RandomizePositionAwayFrom(playerPos, 6f);
                 if (wasInactive && !bossJustActivated)
                 {
